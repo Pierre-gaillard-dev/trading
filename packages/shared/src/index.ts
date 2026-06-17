@@ -1,7 +1,26 @@
 /**
- * @trading/shared — types et DTO partagés entre l'API et le dashboard.
- *
- * Les DTO validés par zod (contrat REST + WebSocket, cf. docs/api.md) seront
- * ajoutés au Lot 5. Ce package est volontairement vide pour l'instant.
+ * @trading/shared — types et utilitaires partagés entre l'API et le dashboard.
+ * Point d'entrée unique : organiser les fichiers en sous-dossiers ne change pas
+ * les imports `@trading/shared` côté API/web.
  */
-export const SHARED_PACKAGE = '@trading/shared';
+
+// types/
+export type { PasswordCheck } from './types/password';
+
+// utils/
+export { validatePassword, PASSWORD_MIN_LENGTH } from './utils/password';
+
+// constants/
+export { DEMO_ACCOUNT } from './constants/demo-account';
+
+// schemas/
+export {
+  loginRequestSchema,
+  loginResponseSchema,
+  publicUserSchema,
+  meResponseSchema,
+  type LoginRequest,
+  type LoginResponse,
+  type PublicUser,
+  type MeResponse,
+} from './schemas/auth';
