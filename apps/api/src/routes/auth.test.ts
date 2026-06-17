@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEMO_ACCOUNT, loginResponseSchema } from '@trading/shared';
+import { DEMO_ACCOUNT, meResponseSchema } from '@trading/shared';
 import { buildApp } from '../app';
 import { FastifyInstance } from 'fastify/types/instance';
 
@@ -63,7 +63,7 @@ describe('loginRoute', () => {
         payload: request.body,
       });
 
-      expect(response.statusCode).toBe(401);
+      expect(response.statusCode).toBe(400);
     });
   });
 
@@ -91,9 +91,9 @@ describe('loginRoute', () => {
       });
 
       expect(meResponse.statusCode).toBe(200);
-      const result = loginResponseSchema.safeParse(JSON.parse(meResponse.body));
+      const result = meResponseSchema.safeParse(JSON.parse(meResponse.body));
       expect(result.success).toBe(true);
-      expect(result.data).toHaveProperty('email', DEMO_ACCOUNT.email);
+      expect(result.data).toHaveProperty('user.email', DEMO_ACCOUNT.email);
     });
 
     it('should return 401 for an invalid token', async () => {
