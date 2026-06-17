@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Tests / couverture
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Éditeurs / OS
+.DS_Store
+.idea/
+.vscode/
+*.local
+
+# Prisma (généré, ajouté au Lot 4)
+**/generated/
