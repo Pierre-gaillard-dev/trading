@@ -5,13 +5,22 @@
     "moduleResolution": "Bundler",
     "lib": ["ES2022"],
     "types": [],
+
+    // --- Strict ---
     "strict": true,
     "noImplicitOverride": true,
+    "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    // --- Modules / interop ---
     "isolatedModules": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+
+    // --- Emit ---
     "declaration": true,
     "sourceMap": true
   }
