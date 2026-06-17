@@ -7,6 +7,10 @@ dist/
 build/
 *.tsbuildinfo
 
+# Turbo (cache)
+.turbo/
+**/.turbo/
+
 # Tests / couverture
 coverage/
 
