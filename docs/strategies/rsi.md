@@ -9,6 +9,7 @@ Le RSI est un **oscillateur** borné entre 0 et 100 qui mesure la vitesse et l'a
 ## Indicateur & formule (lissage de Wilder)
 
 Sur une période `n` (par défaut 14), à partir des variations de clôture `Δ = close_t − close_{t-1}` :
+
 - `gain = max(Δ, 0)`, `perte = max(−Δ, 0)`.
 - **Première valeur** : `avgGain = moyenne des gains sur n`, `avgLoss = moyenne des pertes sur n`.
 - **Valeurs suivantes (lissage de Wilder)** :
@@ -21,11 +22,11 @@ Sur une période `n` (par défaut 14), à partir des variations de clôture `Δ 
 
 ## Paramètres
 
-| Param | Type | Défaut | Description |
-|---|---|---|---|
-| `period` | `int > 1` | `14` | Fenêtre du RSI. |
-| `oversold` | `0–100` | `30` | Seuil de survente (déclenche l'achat). |
-| `overbought` | `0–100` | `70` | Seuil de surachat (déclenche la vente). |
+| Param        | Type      | Défaut | Description                             |
+| ------------ | --------- | ------ | --------------------------------------- |
+| `period`     | `int > 1` | `14`   | Fenêtre du RSI.                         |
+| `oversold`   | `0–100`   | `30`   | Seuil de survente (déclenche l'achat).  |
+| `overbought` | `0–100`   | `70`   | Seuil de surachat (déclenche la vente). |
 
 Variantes : seuils `20/80` (moins de faux signaux, moins de trades) ; période plus courte = plus sensible.
 **Validation** : `0 < oversold < overbought < 100`, `period > 1`.
@@ -75,9 +76,9 @@ export class RsiStrategy implements Strategy {
     this.minCandles = p.period + 1;
   }
   decide(ctx: StrategyContext): Signal {
-    const closes = ctx.candles.map(c => c.close);
+    const closes = ctx.candles.map((c) => c.close);
     if (closes.length < this.minCandles) return 'HOLD';
-    const r = rsi(closes, this.p.period);          // série avec null en tête
+    const r = rsi(closes, this.p.period); // série avec null en tête
     const [prev, now] = lastTwo(r);
     if (prev == null || now == null) return 'HOLD';
     if (prev >= this.p.oversold && now < this.p.oversold) return 'BUY';
@@ -88,6 +89,7 @@ export class RsiStrategy implements Strategy {
 ```
 
 ## Sources
+
 - [StockCharts — RSI (lissage de Wilder)](https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-strength-index-rsi)
 - [Fidelity — What is RSI](https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/RSI)
 - [QuantInsti — RSI formula & Python](https://blog.quantinsti.com/rsi-indicator/)

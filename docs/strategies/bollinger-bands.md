@@ -9,6 +9,7 @@ On encadre le prix par une moyenne mobile ± un multiple de l'**écart-type** (v
 ## Indicateur & formules
 
 Sur `period` (défaut 20), multiplicateur `k` (défaut 2) :
+
 - `middle = SMA(close, period)`
 - `σ = écart-type (population, ÷ period) des `period` dernières clôtures`
 - `upper = middle + k·σ` ; `lower = middle − k·σ`
@@ -17,11 +18,11 @@ Sur `period` (défaut 20), multiplicateur `k` (défaut 2) :
 
 ## Paramètres
 
-| Param | Type | Défaut | Description |
-|---|---|---|---|
-| `period` | `int > 1` | `20` | Fenêtre de la SMA et de l'écart-type. |
-| `k` | `number > 0` | `2` | Nombre d'écarts-types pour les bandes. |
-| `mode` | `'reversion' \| 'breakout'` | `'reversion'` | Sens d'interprétation des touches de bande. |
+| Param    | Type                        | Défaut        | Description                                 |
+| -------- | --------------------------- | ------------- | ------------------------------------------- |
+| `period` | `int > 1`                   | `20`          | Fenêtre de la SMA et de l'écart-type.       |
+| `k`      | `number > 0`                | `2`           | Nombre d'écarts-types pour les bandes.      |
+| `mode`   | `'reversion' \| 'breakout'` | `'reversion'` | Sens d'interprétation des touches de bande. |
 
 **Validation** : `period > 1`, `k > 0`.
 **`minCandles` = `period + 1`** (besoin de la bande courante et de la précédente pour détecter une transition).
@@ -76,12 +77,13 @@ export class BollingerBandsStrategy implements Strategy {
     this.minCandles = p.period + 1;
   }
   decide(ctx: StrategyContext): Signal {
-    const closes = ctx.candles.map(c => c.close);
+    const closes = ctx.candles.map((c) => c.close);
     if (closes.length < this.minCandles) return 'HOLD';
     const { upper, lower } = bollinger(closes, this.p.period, this.p.k);
     const [cPrev, cNow] = lastTwo(closes);
-    const [uPrev, uNow] = lastTwo(upper), [lPrev, lNow] = lastTwo(lower);
-    const touchLow  = crossesBelow(cPrev, cNow, lPrev, lNow);
+    const [uPrev, uNow] = lastTwo(upper),
+      [lPrev, lNow] = lastTwo(lower);
+    const touchLow = crossesBelow(cPrev, cNow, lPrev, lNow);
     const touchHigh = crossesAbove(cPrev, cNow, uPrev, uNow);
     if (this.p.mode === 'breakout') return touchHigh ? 'BUY' : touchLow ? 'SELL' : 'HOLD';
     return touchLow ? 'BUY' : touchHigh ? 'SELL' : 'HOLD'; // reversion
@@ -90,5 +92,6 @@ export class BollingerBandsStrategy implements Strategy {
 ```
 
 ## Sources
+
 - [StockCharts — Bollinger Bands](https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-overlays/bollinger-bands)
 - [QuantInsti — Bollinger Bands explained](https://blog.quantinsti.com/bollinger-bands/)

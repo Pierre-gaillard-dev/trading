@@ -4,7 +4,7 @@
 
 ## Idée
 
-Une moyenne mobile **courte** réagit vite aux prix, une **longue** réagit lentement. Quand la courte passe **au-dessus** de la longue, la tendance récente devient haussière → **acheter**. Quand elle repasse **en dessous**, la tendance se retourne → **vendre**. C'est la base du fameux *golden cross* (50/200) et *death cross*.
+Une moyenne mobile **courte** réagit vite aux prix, une **longue** réagit lentement. Quand la courte passe **au-dessus** de la longue, la tendance récente devient haussière → **acheter**. Quand elle repasse **en dessous**, la tendance se retourne → **vendre**. C'est la base du fameux _golden cross_ (50/200) et _death cross_.
 
 ## Indicateurs & formules
 
@@ -17,11 +17,11 @@ La stratégie est paramétrée par le **type** de MA (`SMA` ou `EMA`) et par les
 
 ## Paramètres
 
-| Param | Type | Défaut | Description |
-|---|---|---|---|
-| `maType` | `'SMA' \| 'EMA'` | `'EMA'` | Type de moyenne mobile. |
-| `fastPeriod` | `int > 0` | `9` | Période de la MA courte. |
-| `slowPeriod` | `int > fastPeriod` | `21` | Période de la MA longue. |
+| Param        | Type               | Défaut  | Description              |
+| ------------ | ------------------ | ------- | ------------------------ |
+| `maType`     | `'SMA' \| 'EMA'`   | `'EMA'` | Type de moyenne mobile.  |
+| `fastPeriod` | `int > 0`          | `9`     | Période de la MA courte. |
+| `slowPeriod` | `int > fastPeriod` | `21`    | Période de la MA longue. |
 
 Combinaisons classiques : `50/200` (golden cross, daily), `9/21` ou `20/50` (intraday crypto), `13/26`.
 **Validation** : `fastPeriod < slowPeriod`, périodes entières > 0, sinon erreur de configuration.
@@ -70,11 +70,12 @@ export class MaCrossoverStrategy implements Strategy {
     this.minCandles = p.slowPeriod + 1;
   }
   decide(ctx: StrategyContext): Signal {
-    const closes = ctx.candles.map(c => c.close);
+    const closes = ctx.candles.map((c) => c.close);
     if (closes.length < this.minCandles) return 'HOLD';
     const fast = movingAverage(this.p.maType, closes, this.p.fastPeriod);
     const slow = movingAverage(this.p.maType, closes, this.p.slowPeriod);
-    const [fp, fn] = lastTwo(fast), [sp, sn] = lastTwo(slow);
+    const [fp, fn] = lastTwo(fast),
+      [sp, sn] = lastTwo(slow);
     if (crossesAbove(fp, fn, sp, sn)) return 'BUY';
     if (crossesBelow(fp, fn, sp, sn)) return 'SELL';
     return 'HOLD';
@@ -83,5 +84,6 @@ export class MaCrossoverStrategy implements Strategy {
 ```
 
 ## Sources
+
 - [TrendSpider — Golden Cross & Death Cross](https://trendspider.com/learning-center/golden-cross-death-cross-trading-strategies/)
 - [TradersUnion — MA crossover strategies](https://tradersunion.com/interesting-articles/trading-strategies/ma-crossover-strategies/)

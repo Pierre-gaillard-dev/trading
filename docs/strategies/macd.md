@@ -9,20 +9,21 @@ Le MACD mesure l'écart entre une EMA rapide et une EMA lente : c'est un indicat
 ## Indicateur & formules
 
 Paramètres classiques `(12, 26, 9)` :
-- `MACD_t = EMA(close, fast) − EMA(close, slow)`  (fast=12, slow=26)
-- `Signal_t = EMA(MACD, signalPeriod)`  (signalPeriod=9)
+
+- `MACD_t = EMA(close, fast) − EMA(close, slow)` (fast=12, slow=26)
+- `Signal_t = EMA(MACD, signalPeriod)` (signalPeriod=9)
 - `Histogramme_t = MACD_t − Signal_t`
 
 L'histogramme > 0 ⇔ MACD au-dessus du signal (biais haussier) ; < 0 ⇔ biais baissier. Le franchissement du zéro par l'histogramme correspond exactement au croisement MACD/Signal.
 
 ## Paramètres
 
-| Param | Type | Défaut | Description |
-|---|---|---|---|
-| `fastPeriod` | `int > 0` | `12` | EMA rapide. |
-| `slowPeriod` | `int > fastPeriod` | `26` | EMA lente. |
-| `signalPeriod` | `int > 0` | `9` | EMA de la ligne MACD. |
-| `requirePositive` | `bool` | `false` | Si vrai, n'achète que si `MACD > 0` (filtre de tendance, réduit les faux signaux). |
+| Param             | Type               | Défaut  | Description                                                                        |
+| ----------------- | ------------------ | ------- | ---------------------------------------------------------------------------------- |
+| `fastPeriod`      | `int > 0`          | `12`    | EMA rapide.                                                                        |
+| `slowPeriod`      | `int > fastPeriod` | `26`    | EMA lente.                                                                         |
+| `signalPeriod`    | `int > 0`          | `9`     | EMA de la ligne MACD.                                                              |
+| `requirePositive` | `bool`             | `false` | Si vrai, n'achète que si `MACD > 0` (filtre de tendance, réduit les faux signaux). |
 
 **Validation** : `fastPeriod < slowPeriod`, toutes périodes > 0.
 **`minCandles`** : il faut `slowPeriod` bougies pour la 1re valeur MACD, puis `signalPeriod` valeurs MACD pour la 1re valeur de signal, plus 1 pour le croisement → `≈ slowPeriod + signalPeriod + 1` (à caler précisément selon le seed EMA choisi, et **à figer par un test**).
@@ -67,9 +68,15 @@ export class MacdStrategy implements Strategy {
     this.minCandles = p.slowPeriod + p.signalPeriod + 1;
   }
   decide(ctx: StrategyContext): Signal {
-    const closes = ctx.candles.map(c => c.close);
-    const { macd: m, signal: s } = macd(closes, this.p.fastPeriod, this.p.slowPeriod, this.p.signalPeriod);
-    const [mp, mn] = lastTwo(m), [sp, sn] = lastTwo(s);
+    const closes = ctx.candles.map((c) => c.close);
+    const { macd: m, signal: s } = macd(
+      closes,
+      this.p.fastPeriod,
+      this.p.slowPeriod,
+      this.p.signalPeriod,
+    );
+    const [mp, mn] = lastTwo(m),
+      [sp, sn] = lastTwo(s);
     if (mp == null || mn == null || sp == null || sn == null) return 'HOLD';
     if (crossesAbove(mp, mn, sp, sn) && (!this.p.requirePositive || mn > 0)) return 'BUY';
     if (crossesBelow(mp, mn, sp, sn)) return 'SELL';
@@ -79,5 +86,6 @@ export class MacdStrategy implements Strategy {
 ```
 
 ## Sources
+
 - [StockCharts — MACD Histogram](https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/macd-histogram)
 - [Capital.com — MACD strategies & settings](https://capital.com/en-int/learn/technical-analysis/macd-trading-strategy)
