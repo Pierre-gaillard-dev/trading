@@ -21,6 +21,7 @@ export { roc } from './application/indicators/roc';
 
 // === Ports ===
 export type { RandomSource } from './ports/random-source';
+export { SeededRandom } from './random/seeded-random';
 
 // === Stratégies ===
 export * from './application/strategies';
@@ -48,3 +49,12 @@ export {
   type TradingBotConfig,
   type RiskParams,
 } from './application/bot/trading-bot';
+
+// === Backtest ===
+export {
+  runBacktest,
+  type BacktestInput,
+  type BacktestResult,
+  type BacktestTrade,
+  type EquityPoint,
+} from './application/backtest/backtester';
