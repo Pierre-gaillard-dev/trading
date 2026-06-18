@@ -46,7 +46,12 @@ export class WorkerManager {
   }
 
   private async deliver(worker: Worker, candle: Candle): Promise<void> {
-    const history = await this.candles.getRecent(worker.symbol, worker.interval, this.historyLimit);
-    await worker.onClosedCandle(candle, history);
+    // Un worker qui échoue ne doit JAMAIS faire tomber le serveur (ni les autres bots).
+    try {
+      const history = await this.candles.getRecent(worker.symbol, worker.interval, this.historyLimit);
+      await worker.onClosedCandle(candle, history);
+    } catch (error) {
+      console.warn(`[worker ${worker.id}] erreur sur une bougie :`, (error as Error).message);
+    }
   }
 }
