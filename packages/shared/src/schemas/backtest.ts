@@ -18,8 +18,8 @@ export const runBacktestSchema = z.object({
   buyFraction: z.number().gt(0).max(1).optional(),
   feeRate: decimalString.optional(),
   slippageBps: z.number().int().min(0).optional(),
-  /** Nombre de bougies historiques à rejouer (max 1000, défaut 500). */
-  candles: z.number().int().min(50).max(1000).optional(),
+  /** Nombre de bougies historiques à rejouer (max 10000, défaut 500). */
+  candles: z.number().int().min(50).max(10000).optional(),
   /** Graine d'aléa (rend le backtest reproductible). */
   seed: z.number().int().optional(),
 });
@@ -42,6 +42,7 @@ export const equityPointSchema = z.object({
 
 /** Résultat chiffré d'un backtest. */
 export const backtestResultSchema = z.object({
+  candleCount: z.number(),
   initialEquity: z.string(),
   finalEquity: z.string(),
   pnl: z.string(),
