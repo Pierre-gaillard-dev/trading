@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { marketMessageSchema, type Candle } from '@trading/shared';
+import { getToken } from '../auth/auth-store';
 
 export interface MarketState {
   price: number | null;
@@ -16,8 +17,8 @@ function upsert(candles: Candle[], candle: Candle): Candle[] {
   return [...candles, candle];
 }
 
-/** Se connecte au flux /ws/market du symbole donné. Se reconnecte si `symbol` change. */
-export function useMarket(symbol: string): MarketState {
+/** Se connecte au flux /ws/market (symbole + intervalle). Se reconnecte si l'un change. */
+export function useMarket(symbol: string, interval: string): MarketState {
   const [price, setPrice] = useState<number | null>(null);
   const [candles, setCandles] = useState<Candle[]>([]);
   const [connected, setConnected] = useState(false);
@@ -34,8 +35,9 @@ export function useMarket(symbol: string): MarketState {
 
     const connect = () => {
       const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      const token = getToken() ?? '';
       const ws = new WebSocket(
-        `${protocol}://${window.location.host}/ws/market?symbol=${encodeURIComponent(symbol)}`,
+        `${protocol}://${window.location.host}/ws/market?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&token=${encodeURIComponent(token)}`,
       );
       socket = ws;
 
@@ -78,7 +80,7 @@ export function useMarket(symbol: string): MarketState {
       }
       socket?.close();
     };
-  }, [symbol]);
+  }, [symbol, interval]);
 
   return { price, candles, connected };
 }

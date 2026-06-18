@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { CANDLE_INTERVALS, type CandleInterval } from '@trading/shared';
 import { setToken } from '../auth/auth-store';
 import { useMarket } from '../market/use-market';
 import { CandleChart } from '../market/candle-chart';
@@ -10,7 +11,8 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const { items, error, loading, add, remove } = useWatchlist();
   const [selected, setSelected] = useState('BTCUSDT');
-  const { price, candles, connected } = useMarket(selected);
+  const [selectedInterval, setSelectedInterval] = useState<CandleInterval>('1m');
+  const { price, candles, connected } = useMarket(selected, selectedInterval);
 
   // Symboles affichables dans le graphe : la watchlist, avec BTCUSDT toujours dispo.
   const symbols = useMemo(() => [...new Set(['BTCUSDT', ...items.map((i) => i.symbol)])], [items]);
@@ -61,9 +63,29 @@ export function DashboardPage() {
                 {price === null ? '—' : `${price.toLocaleString('fr-FR')} USDT`}
               </p>
             </div>
-            <span className={connected ? 'text-xs text-green-600' : 'text-xs text-slate-400'}>
-              {connected ? '● en direct' : '○ connexion…'}
-            </span>
+            <div className='flex flex-col items-end gap-2'>
+              <div className='flex gap-1'>
+                {CANDLE_INTERVALS.map((iv) => (
+                  <button
+                    key={iv}
+                    type='button'
+                    onClick={() => {
+                      setSelectedInterval(iv);
+                    }}
+                    className={
+                      iv === selectedInterval
+                        ? 'rounded bg-slate-900 px-2 py-1 text-xs text-white'
+                        : 'rounded bg-slate-100 px-2 py-1 text-xs text-slate-600 hover:bg-slate-200'
+                    }
+                  >
+                    {iv}
+                  </button>
+                ))}
+              </div>
+              <span className={connected ? 'text-xs text-green-600' : 'text-xs text-slate-400'}>
+                {connected ? '● en direct' : '○ connexion…'}
+              </span>
+            </div>
           </div>
         </section>
 
