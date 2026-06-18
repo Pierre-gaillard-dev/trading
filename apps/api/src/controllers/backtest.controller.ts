@@ -9,13 +9,33 @@ import {
   type StrategyKey,
   type Candle as CoreCandle,
 } from '@trading/core';
-import { runBacktestSchema, type Candle as MarketCandle } from '@trading/shared';
-import { fetchRecentCandles } from '../services/binance/binance.client';
+import {
+  runBacktestSchema,
+  type BacktestResultDto,
+  type Candle as MarketCandle,
+} from '@trading/shared';
+import { fetchHistory } from '../services/binance/binance.client';
 import { defaultSymbolSpec } from '../services/symbol-spec';
 
 const DEFAULT_CANDLES = 500;
 const DEFAULT_BUY_FRACTION = 0.1;
 const DEFAULT_SEED = 1;
+/** Points max renvoyés pour la courbe d'équité (on sous-échantillonne au-delà). */
+const MAX_CURVE_POINTS = 1500;
+
+/** Réduit un tableau à ~max éléments en gardant le dernier (pour alléger la réponse). */
+function downsample<T>(items: T[], max: number): T[] {
+  if (items.length <= max) {
+    return items;
+  }
+  const step = Math.ceil(items.length / max);
+  const out = items.filter((_, index) => index % step === 0);
+  const last = items[items.length - 1];
+  if (out[out.length - 1] !== last) {
+    out.push(last);
+  }
+  return out;
+}
 
 /** Récupère l'historique des bougies (injectable pour tester sans réseau). */
 export type CandleFetcher = (
@@ -41,7 +61,7 @@ function toCore(candle: MarketCandle): CoreCandle {
 }
 
 export function createBacktestController({ fetchCandles }: BacktestControllerDeps = {}) {
-  const fetcher: CandleFetcher = fetchCandles ?? fetchRecentCandles;
+  const fetcher: CandleFetcher = fetchCandles ?? fetchHistory;
 
   async function run(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
     const parsed = runBacktestSchema.safeParse(request.body);
@@ -85,7 +105,12 @@ export function createBacktestController({ fetchCandles }: BacktestControllerDep
       feeRate: data.feeRate,
       slippageBps: data.slippageBps,
     });
-    return reply.send(result);
+    // On allège la courbe pour le transport (les métriques restent calculées sur la série complète).
+    const response: BacktestResultDto = {
+      ...result,
+      equityCurve: downsample(result.equityCurve, MAX_CURVE_POINTS),
+    };
+    return reply.send(response);
   }
 
   return { run };

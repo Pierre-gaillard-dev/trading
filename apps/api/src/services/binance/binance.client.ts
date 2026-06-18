@@ -19,9 +19,20 @@ function toCandle(entry: unknown): Candle {
 }
 
 /** URL REST des bougies (klines). */
-export function buildKlinesUrl(symbol: string, interval: string, limit: number): string {
-  return `${REST_BASE}/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${String(limit)}`;
+export function buildKlinesUrl(
+  symbol: string,
+  interval: string,
+  limit: number,
+  endTime?: number,
+): string {
+  const base = `${REST_BASE}/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${String(limit)}`;
+  return endTime === undefined ? base : `${base}&endTime=${String(endTime)}`;
 }
+
+/** Nombre max de bougies par requête REST Binance. */
+const MAX_PER_REQUEST = 1000;
+/** Garde-fou : nombre max de bougies récupérables pour un backtest. */
+const MAX_HISTORY = 10_000;
 
 /** URL REST des infos d'un symbole (sert à vérifier qu'il existe). */
 export function buildExchangeInfoUrl(symbol: string): string {
@@ -34,18 +45,59 @@ export async function symbolExists(symbol: string): Promise<boolean> {
   return response.ok;
 }
 
-/** Récupère l'historique récent des bougies via l'API REST de Binance. */
-export async function fetchRecentCandles(
+/** Récupère une page de bougies (≤ 1000), éventuellement bornée par `endTime` (ms). */
+async function fetchPage(
   symbol: string,
   interval: string,
   limit: number,
+  endTime?: number,
 ): Promise<Candle[]> {
-  const response = await fetch(buildKlinesUrl(symbol, interval, limit));
+  const response = await fetch(buildKlinesUrl(symbol, interval, limit, endTime));
   if (!response.ok) {
     throw new Error(`Binance klines: HTTP ${String(response.status)}`);
   }
   const raw = (await response.json()) as unknown[];
   return raw.map(toCandle);
+}
+
+/** Récupère l'historique récent des bougies via l'API REST de Binance (≤ 1000). */
+export async function fetchRecentCandles(
+  symbol: string,
+  interval: string,
+  limit: number,
+): Promise<Candle[]> {
+  return fetchPage(symbol, interval, Math.min(limit, MAX_PER_REQUEST));
+}
+
+/**
+ * Récupère un long historique en paginant (pages de 1000, en remontant le temps).
+ * Plafonné à `MAX_HISTORY` bougies. Renvoie l'ordre chronologique (plus ancien d'abord).
+ */
+export async function fetchHistory(
+  symbol: string,
+  interval: string,
+  total: number,
+): Promise<Candle[]> {
+  const wanted = Math.min(total, MAX_HISTORY);
+  if (wanted <= MAX_PER_REQUEST) {
+    return fetchPage(symbol, interval, wanted);
+  }
+
+  let candles: Candle[] = [];
+  let endTime: number | undefined;
+  while (candles.length < wanted) {
+    const limit = Math.min(MAX_PER_REQUEST, wanted - candles.length);
+    const page = await fetchPage(symbol, interval, limit, endTime);
+    if (page.length === 0) {
+      break;
+    }
+    candles = page.concat(candles); // les plus anciennes devant
+    endTime = page[0].time * 1000 - 1; // page suivante = juste avant la plus ancienne
+    if (page.length < limit) {
+      break; // plus d'historique disponible
+    }
+  }
+  return candles;
 }
 
 /** URL du flux combiné Binance : trades (prix) + bougies (kline). */
