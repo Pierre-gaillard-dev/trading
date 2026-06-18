@@ -105,10 +105,11 @@ export function createBacktestController({ fetchCandles }: BacktestControllerDep
       feeRate: data.feeRate,
       slippageBps: data.slippageBps,
     });
-    // On allège la courbe pour le transport (les métriques restent calculées sur la série complète).
+    // On allège les courbes pour le transport (les métriques restent calculées sur la série complète).
     const response: BacktestResultDto = {
       ...result,
       equityCurve: downsample(result.equityCurve, MAX_CURVE_POINTS),
+      priceCurve: downsample(result.priceCurve, MAX_CURVE_POINTS),
     };
     return reply.send(response);
   }
