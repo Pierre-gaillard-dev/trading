@@ -8,6 +8,7 @@ import { BollingerBandsStrategy, type BollingerParams } from './bollinger-bands.
 import { MomentumRocStrategy, type MomentumRocParams } from './momentum-roc.strategy';
 import { DonchianBreakoutStrategy, type DonchianParams } from './donchian-breakout.strategy';
 import { BuyAndHoldStrategy } from './buy-and-hold.strategy';
+import { CandleStreakStrategy, type CandleStreakParams } from './candle-streak.strategy';
 
 export type { Signal, Strategy, StrategyContext } from './strategy';
 export {
@@ -26,6 +27,7 @@ export {
 export { MomentumRocStrategy, type MomentumRocParams } from './momentum-roc.strategy';
 export { DonchianBreakoutStrategy, type DonchianParams } from './donchian-breakout.strategy';
 export { BuyAndHoldStrategy } from './buy-and-hold.strategy';
+export { CandleStreakStrategy, type CandleStreakParams } from './candle-streak.strategy';
 
 /** Clés stables des stratégies disponibles. */
 export type StrategyKey =
@@ -35,7 +37,8 @@ export type StrategyKey =
   | 'bollinger_bands'
   | 'momentum_roc'
   | 'donchian_breakout'
-  | 'buy_and_hold';
+  | 'buy_and_hold'
+  | 'candle_streak';
 
 export const STRATEGY_KEYS: readonly StrategyKey[] = [
   'ma_crossover',
@@ -45,6 +48,7 @@ export const STRATEGY_KEYS: readonly StrategyKey[] = [
   'momentum_roc',
   'donchian_breakout',
   'buy_and_hold',
+  'candle_streak',
 ];
 
 /**
@@ -67,6 +71,8 @@ export function createStrategy(key: StrategyKey, params: unknown = {}): Strategy
       return new DonchianBreakoutStrategy(params as DonchianParams);
     case 'buy_and_hold':
       return new BuyAndHoldStrategy();
+    case 'candle_streak':
+      return new CandleStreakStrategy(params as CandleStreakParams);
   }
 }
 
