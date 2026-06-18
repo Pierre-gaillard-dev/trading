@@ -6,6 +6,7 @@ export interface BotConfigRecord {
   interval: string;
   strategyKey: string;
   params: unknown;
+  buyFraction: number;
 }
 
 export interface NewBotConfig {
@@ -15,6 +16,7 @@ export interface NewBotConfig {
   interval: string;
   strategyKey: string;
   params: unknown;
+  buyFraction: number;
 }
 
 /** Persistance des bots, pour les relancer au démarrage du serveur (port). */

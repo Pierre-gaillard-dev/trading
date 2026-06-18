@@ -13,6 +13,7 @@ interface BotConfigRow {
   interval: string;
   strategyKey: string;
   params: unknown;
+  buyFraction: number;
 }
 
 function toRecord(row: BotConfigRow): BotConfigRecord {
@@ -24,6 +25,7 @@ function toRecord(row: BotConfigRow): BotConfigRecord {
     interval: row.interval,
     strategyKey: row.strategyKey,
     params: row.params,
+    buyFraction: row.buyFraction,
   };
 }
 
@@ -40,6 +42,7 @@ export class PrismaBotConfigRepository implements BotConfigRepository {
         interval: input.interval,
         strategyKey: input.strategyKey,
         params: (input.params ?? {}) as Prisma.InputJsonValue,
+        buyFraction: input.buyFraction,
       },
     });
     return toRecord(row);

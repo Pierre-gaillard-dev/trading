@@ -25,8 +25,12 @@ export interface CreateBotInput {
   interval: string;
   strategyKey: StrategyKey;
   params?: unknown;
+  /** Part du cash investie à chaque achat (0–1). Défaut 0,10. */
+  buyFraction?: number;
   risk?: RiskParams;
 }
+
+const DEFAULT_BUY_FRACTION = 0.1;
 
 export interface RunningBot {
   id: string;
@@ -58,6 +62,7 @@ export class BotManager {
       interval: input.interval,
       strategyKey: input.strategyKey,
       params: input.params ?? {},
+      buyFraction: input.buyFraction ?? DEFAULT_BUY_FRACTION,
     });
     const running = await this.run(config);
     if (running === null) {
@@ -142,7 +147,7 @@ export class BotManager {
       symbol: config.symbol,
       spec: defaultSymbolSpec(config.symbol),
       strategy: createStrategy(strategyKey, config.params),
-      sizing: new FixedFractionSizing(0.95),
+      sizing: new FixedFractionSizing(config.buyFraction),
       portfolio,
     });
 

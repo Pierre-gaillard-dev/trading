@@ -30,6 +30,13 @@ export default defineConfig({
           include: ['src/services/binance/**/*.test.ts'],
         },
       },
+      {
+        extends: true,
+        test: {
+          name: 'api:workers',
+          include: ['src/workers/**/*.test.ts'],
+        },
+      },
     ],
   },
 });

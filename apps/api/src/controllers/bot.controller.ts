@@ -32,6 +32,7 @@ export function createBotController({ bots }: BotControllerDeps) {
         interval: data.interval,
         strategyKey: data.strategyKey as StrategyKey,
         params: data.params,
+        buyFraction: data.buyFraction,
       });
       return reply.code(201).send(bot);
     } catch (error) {
