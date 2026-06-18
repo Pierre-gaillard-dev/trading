@@ -57,4 +57,5 @@ export {
   type BacktestResult,
   type BacktestTrade,
   type EquityPoint,
+  type PricePoint,
 } from './application/backtest/backtester';

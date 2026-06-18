@@ -36,6 +36,12 @@ export interface EquityPoint {
   equity: string;
 }
 
+/** Un point de la courbe de prix (clôture de la crypto au fil du temps). */
+export interface PricePoint {
+  time: number;
+  price: number;
+}
+
 export interface BacktestResult {
   /** Nombre de bougies réellement analysées. */
   candleCount: number;
@@ -55,6 +61,8 @@ export interface BacktestResult {
   buyHoldPnlPct: string;
   trades: BacktestTrade[];
   equityCurve: EquityPoint[];
+  /** Prix (clôture) de la crypto au fil du temps, pour situer l'état du marché. */
+  priceCurve: PricePoint[];
 }
 
 const MONEY_DP = 2;
@@ -87,6 +95,7 @@ export function runBacktest(input: BacktestInput): BacktestResult {
   const series: Candle[] = [];
   const trades: BacktestTrade[] = [];
   const equityCurve: EquityPoint[] = [];
+  const priceCurve: PricePoint[] = [];
 
   let closedTrades = 0;
   let wins = 0;
@@ -123,6 +132,7 @@ export function runBacktest(input: BacktestInput): BacktestResult {
 
     const equity = portfolio.equity(new Map([[symbol, Price.of(candle.close)]])).amount;
     equityCurve.push({ time: candle.openTime, equity: equity.toFixed(MONEY_DP) });
+    priceCurve.push({ time: candle.openTime, price: candle.close });
 
     if (equity.gt(peakEquity)) {
       peakEquity = equity;
@@ -157,5 +167,6 @@ export function runBacktest(input: BacktestInput): BacktestResult {
     buyHoldPnlPct: buyHoldPnlPct.toFixed(PCT_DP),
     trades,
     equityCurve,
+    priceCurve,
   };
 }
