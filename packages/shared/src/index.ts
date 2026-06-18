@@ -40,3 +40,10 @@ export {
   type WatchedSymbol,
   type WatchlistResponse,
 } from './schemas/watchlist';
+export {
+  createPortfolioSchema,
+  portfolioSchema,
+  portfoliosResponseSchema,
+  type CreatePortfolio,
+  type PortfolioDto,
+} from './schemas/portfolio';
