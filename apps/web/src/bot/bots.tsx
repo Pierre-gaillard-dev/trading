@@ -7,15 +7,33 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
   const [portfolioId, setPortfolioId] = useState('');
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [interval, setInterval] = useState<string>('1m');
-  const [strategyKey, setStrategyKey] = useState('');
   const [buyPct, setBuyPct] = useState('10');
+  // strategyKey -> poids (en chaîne). La présence dans l'objet = stratégie activée.
+  const [picks, setPicks] = useState<Record<string, string>>({});
 
   const effectivePortfolio = portfolioId || portfolios[0]?.id || '';
-  const effectiveStrategy = strategyKey || strategies[0] || '';
+
+  function toggle(key: string): void {
+    setPicks((current) => {
+      if (key in current) {
+        return Object.fromEntries(Object.entries(current).filter(([k]) => k !== key));
+      }
+      return { ...current, [key]: '1' };
+    });
+  }
+
+  function setWeight(key: string, value: string): void {
+    setPicks((current) => ({ ...current, [key]: value }));
+  }
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (effectivePortfolio === '' || effectiveStrategy === '') {
+    const chosen = Object.entries(picks)
+      .map(([strategyKey, raw]) => {
+        const weight = Number(raw);
+        return { strategyKey, weight: Number.isFinite(weight) && weight > 0 ? weight : 1 };
+      });
+    if (effectivePortfolio === '' || chosen.length === 0) {
       return;
     }
     const pct = Number(buyPct);
@@ -24,9 +42,10 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
       portfolioId: effectivePortfolio,
       symbol: symbol.trim().toUpperCase(),
       interval,
-      strategyKey: effectiveStrategy,
+      strategies: chosen,
       buyFraction,
     });
+    setPicks({});
   }
 
   const portfolioName = (id: string): string => portfolios.find((p) => p.id === id)?.name ?? id;
@@ -38,65 +57,91 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
       {portfolios.length === 0 ? (
         <p className='text-sm text-slate-500'>Crée d'abord un portefeuille pour lancer un bot.</p>
       ) : (
-        <form onSubmit={(event) => void handleCreate(event)} className='mb-3 flex flex-wrap gap-2'>
-          <select
-            value={effectivePortfolio}
-            onChange={(event) => {
-              setPortfolioId(event.target.value);
-            }}
-            className='rounded-md border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-500'
-          >
-            {portfolios.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <input
-            value={symbol}
-            onChange={(event) => {
-              setSymbol(event.target.value);
-            }}
-            placeholder='BTCUSDT'
-            className='w-32 rounded-md border border-slate-300 px-3 py-2 text-sm uppercase outline-none focus:border-slate-500'
-          />
-          <select
-            value={interval}
-            onChange={(event) => {
-              setInterval(event.target.value);
-            }}
-            className='rounded-md border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-500'
-          >
-            {CANDLE_INTERVALS.map((iv) => (
-              <option key={iv} value={iv}>
-                {iv}
-              </option>
-            ))}
-          </select>
-          <select
-            value={effectiveStrategy}
-            onChange={(event) => {
-              setStrategyKey(event.target.value);
-            }}
-            className='rounded-md border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-500'
-          >
-            {strategies.map((key) => (
-              <option key={key} value={key}>
-                {key}
-              </option>
-            ))}
-          </select>
-          <label className='flex items-center gap-1 text-sm text-slate-600'>
-            <input
-              value={buyPct}
+        <form onSubmit={(event) => void handleCreate(event)} className='mb-3 space-y-3'>
+          <div className='flex flex-wrap gap-2'>
+            <select
+              value={effectivePortfolio}
               onChange={(event) => {
-                setBuyPct(event.target.value);
+                setPortfolioId(event.target.value);
               }}
-              inputMode='decimal'
-              className='w-16 rounded-md border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-500'
+              className='rounded-md border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-500'
+            >
+              {portfolios.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            <input
+              value={symbol}
+              onChange={(event) => {
+                setSymbol(event.target.value);
+              }}
+              placeholder='BTCUSDT'
+              className='w-32 rounded-md border border-slate-300 px-3 py-2 text-sm uppercase outline-none focus:border-slate-500'
             />
-            % / achat
-          </label>
+            <select
+              value={interval}
+              onChange={(event) => {
+                setInterval(event.target.value);
+              }}
+              className='rounded-md border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-500'
+            >
+              {CANDLE_INTERVALS.map((iv) => (
+                <option key={iv} value={iv}>
+                  {iv}
+                </option>
+              ))}
+            </select>
+            <label className='flex items-center gap-1 text-sm text-slate-600'>
+              <input
+                value={buyPct}
+                onChange={(event) => {
+                  setBuyPct(event.target.value);
+                }}
+                inputMode='decimal'
+                className='w-16 rounded-md border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-500'
+              />
+              % / achat
+            </label>
+          </div>
+
+          <div>
+            <p className='mb-1 text-xs font-medium uppercase tracking-wide text-slate-500'>
+              Stratégies & poids
+            </p>
+            <div className='grid grid-cols-1 gap-1 sm:grid-cols-2'>
+              {strategies.map((key) => {
+                const active = key in picks;
+                return (
+                  <label
+                    key={key}
+                    className='flex items-center gap-2 rounded-md border border-slate-200 px-2 py-1.5 text-sm'
+                  >
+                    <input
+                      type='checkbox'
+                      checked={active}
+                      onChange={() => {
+                        toggle(key);
+                      }}
+                    />
+                    <span className='flex-1 text-slate-800'>{key}</span>
+                    <input
+                      value={active ? picks[key] : ''}
+                      onChange={(event) => {
+                        setWeight(key, event.target.value);
+                      }}
+                      disabled={!active}
+                      inputMode='decimal'
+                      placeholder='poids'
+                      className='w-16 rounded-md border border-slate-300 px-2 py-1 text-sm outline-none focus:border-slate-500 disabled:bg-slate-50 disabled:text-slate-400'
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
           <button
             type='submit'
             className='rounded-md bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-700'
@@ -115,7 +160,8 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
           {items.map((bot) => (
             <li key={bot.id} className='flex items-center justify-between py-2 text-sm'>
               <span className='text-slate-800'>
-                <span className='font-medium'>{bot.symbol}</span> · {bot.interval} · {bot.strategyKey}
+                <span className='font-medium'>{bot.symbol}</span> · {bot.interval} ·{' '}
+                {bot.strategies.map((s) => `${s.strategyKey}×${String(s.weight)}`).join(', ')}
                 <span className='ml-2 text-slate-500'>({portfolioName(bot.portfolioId)})</span>
               </span>
               <button

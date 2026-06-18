@@ -8,7 +8,9 @@ import { useWatchlist } from '../watchlist/use-watchlist';
 import { Watchlist } from '../watchlist/watchlist';
 import { usePortfolios } from '../portfolio/use-portfolios';
 import { usePortfolioActivity } from '../portfolio/use-portfolio-activity';
+import { usePortfolioSummary } from '../portfolio/use-portfolio-summary';
 import { Portfolios } from '../portfolio/portfolios';
+import { PortfolioSummary } from '../portfolio/portfolio-summary';
 import { TradingPanel } from '../portfolio/trading-panel';
 import { Bots } from '../bot/bots';
 
@@ -23,6 +25,7 @@ export function DashboardPage() {
 
   const { price, candles, connected } = useMarket(selected, selectedInterval);
   const { trades, positions } = usePortfolioActivity(selectedPortfolioId || null);
+  const summary = usePortfolioSummary(selectedPortfolioId || null);
 
   // Symboles affichables : la watchlist, avec BTCUSDT toujours dispo.
   const symbols = useMemo(
@@ -123,6 +126,8 @@ export function DashboardPage() {
         </section>
 
         <Bots portfolios={portfolios.items} />
+
+        <PortfolioSummary summary={summary} />
 
         <TradingPanel
           portfolios={portfolios.items}

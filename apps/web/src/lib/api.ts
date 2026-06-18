@@ -1,5 +1,12 @@
 import { getToken } from '../auth/auth-store';
-import type { WatchedSymbol, PortfolioDto, BotDto, TradeDto, PositionDto } from '@trading/shared';
+import type {
+  WatchedSymbol,
+  PortfolioDto,
+  PortfolioSummaryDto,
+  BotDto,
+  TradeDto,
+  PositionDto,
+} from '@trading/shared';
 
 interface LoginResponse {
   token: string;
@@ -109,6 +116,15 @@ export async function fetchTrades(portfolioId: string, symbol?: string): Promise
   return (await response.json()) as TradeDto[];
 }
 
+/** Synthèse $ d'un portefeuille : cash, positions valorisées, équité, PnL. */
+export async function fetchPortfolioSummary(portfolioId: string): Promise<PortfolioSummaryDto> {
+  const response = await authFetch(`/api/portfolios/${portfolioId}/summary`);
+  if (!response.ok) {
+    throw new Error(await errorMessage(response, 'Chargement de la synthèse échoué.'));
+  }
+  return (await response.json()) as PortfolioSummaryDto;
+}
+
 /** Positions d'un portefeuille. */
 export async function fetchPositions(portfolioId: string): Promise<PositionDto[]> {
   const response = await authFetch(`/api/portfolios/${portfolioId}/positions`);
@@ -140,7 +156,8 @@ export interface CreateBotInput {
   portfolioId: string;
   symbol: string;
   interval: string;
-  strategyKey: string;
+  /** Stratégies pondérées qui composent le bot (au moins une). */
+  strategies: { strategyKey: string; weight: number }[];
   buyFraction: number;
 }
 
