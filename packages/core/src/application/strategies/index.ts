@@ -1,4 +1,6 @@
+import type { RandomSource } from '../../ports/random-source';
 import type { Strategy } from './strategy';
+import { EnsembleStrategy, type WeightedStrategy } from './ensemble.strategy';
 import { MaCrossoverStrategy, type MaCrossoverParams } from './ma-crossover.strategy';
 import { RsiStrategy, type RsiParams } from './rsi.strategy';
 import { MacdStrategy, type MacdParams } from './macd.strategy';
@@ -8,6 +10,11 @@ import { DonchianBreakoutStrategy, type DonchianParams } from './donchian-breako
 import { BuyAndHoldStrategy } from './buy-and-hold.strategy';
 
 export type { Signal, Strategy, StrategyContext } from './strategy';
+export {
+  EnsembleStrategy,
+  type WeightedStrategy,
+  type EnsembleConfig,
+} from './ensemble.strategy';
 export { MaCrossoverStrategy, type MaCrossoverParams, type MaType } from './ma-crossover.strategy';
 export { RsiStrategy, type RsiParams } from './rsi.strategy';
 export { MacdStrategy, type MacdParams } from './macd.strategy';
@@ -61,4 +68,23 @@ export function createStrategy(key: StrategyKey, params: unknown = {}): Strategy
     case 'buy_and_hold':
       return new BuyAndHoldStrategy();
   }
+}
+
+/** Une stratégie membre de l'ensemble : sa clé, son poids, ses paramètres. */
+export interface EnsembleEntry {
+  key: StrategyKey;
+  weight: number;
+  params?: unknown;
+}
+
+/**
+ * Fabrique un ensemble pondéré à partir d'une liste de clés/poids et d'une
+ * source d'aléa injectée. Chaque membre est construit via `createStrategy`.
+ */
+export function createEnsemble(entries: readonly EnsembleEntry[], random: RandomSource): Strategy {
+  const weighted: WeightedStrategy[] = entries.map((entry) => ({
+    strategy: createStrategy(entry.key, entry.params ?? {}),
+    weight: entry.weight,
+  }));
+  return new EnsembleStrategy({ entries: weighted, random });
 }

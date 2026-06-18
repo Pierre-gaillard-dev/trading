@@ -21,7 +21,15 @@ export class FixedFractionSizing implements SizingPolicy {
   }
 
   sizeForBuy({ cash, execPrice, feeRate, spec }: SizingInput): Quantity {
-    const budget = cash.amount.times(this.fraction);
+    // Le moteur arrondit le notional (HALF_UP) et les frais (UP) à la précision
+    // quote ; le sizing, lui, estime sans arrondi. On retranche une petite marge
+    // (2 unités de précision quote) pour que le coût réel ne dépasse jamais le
+    // budget, même quand on investit 100 % du cash.
+    const margin = new Decimal(10).pow(-spec.quotePrecision).times(2);
+    const budget = cash.amount.times(this.fraction).minus(margin);
+    if (budget.lte(0)) {
+      return Quantity.zero();
+    }
     const unitCost = execPrice.amount.times(new Decimal(1).plus(feeRate));
     if (unitCost.lte(0)) {
       return Quantity.zero();

@@ -19,6 +19,9 @@ export { stddev } from './application/indicators/stddev';
 export { bollinger, type BollingerBands } from './application/indicators/bollinger';
 export { roc } from './application/indicators/roc';
 
+// === Ports ===
+export type { RandomSource } from './ports/random-source';
+
 // === Stratégies ===
 export * from './application/strategies';
 
