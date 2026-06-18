@@ -20,13 +20,17 @@
   },
   "dependencies": {
     "@fastify/jwt": "^10.1.0",
+    "@fastify/websocket": "^11.2.0",
     "@prisma/client": "^6.19.3",
     "@trading/shared": "workspace:*",
     "dotenv": "^17.4.2",
-    "fastify": "^5.8.5"
+    "fastify": "^5.8.5",
+    "ws": "^8.21.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
+    "@types/ws": "^8.18.1",
     "@vitest/coverage-v8": "^4.1.9",
     "prisma": "^6.19.3",
     "tsx": "^4.22.4",

@@ -23,6 +23,13 @@ export default defineConfig({
           include: ['src/auth/**/*.test.ts'],
         },
       },
+      {
+        extends: true,
+        test: {
+          name: 'api:binance',
+          include: ['src/services/binance/**/*.test.ts'],
+        },
+      },
     ],
   },
 });
