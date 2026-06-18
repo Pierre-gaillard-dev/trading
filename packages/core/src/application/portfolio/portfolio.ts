@@ -7,6 +7,12 @@ import type { Position } from '../../domain/position';
 import type { SymbolSpec } from '../../domain/symbol-spec';
 import { ExecutionEngine, type ExecutionResult, type Fill } from '../execution/execution-engine';
 
+export interface SeedPosition {
+  symbol: string;
+  quantity: DecimalValue;
+  avgEntryPrice: DecimalValue;
+}
+
 export interface PortfolioConfig {
   /** Cash initial — l'argent (fictif) que tu mets dans le portefeuille. */
   cash: Money | DecimalValue;
@@ -14,6 +20,8 @@ export interface PortfolioConfig {
   feeRate?: DecimalValue;
   /** Slippage en points de base (défaut 5 = 0,05 %). */
   slippageBps?: number;
+  /** Positions de départ (ex. pour reconstruire un portefeuille existant). */
+  positions?: SeedPosition[];
 }
 
 export interface ExecuteOrderInput {
@@ -42,6 +50,13 @@ export class Portfolio {
     this.cash = this.initialCash;
     this.feeRate = config.feeRate ?? 0.001;
     this.slippageBps = config.slippageBps ?? 5;
+    for (const seed of config.positions ?? []) {
+      this.positions.set(seed.symbol, {
+        symbol: seed.symbol,
+        quantity: Quantity.of(seed.quantity),
+        avgEntryPrice: Price.of(seed.avgEntryPrice),
+      });
+    }
   }
 
   getCash(): Money {

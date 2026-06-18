@@ -35,6 +35,7 @@ export { FixedFractionSizing } from './application/sizing/fixed-fraction-sizing'
 export {
   Portfolio,
   type PortfolioConfig,
+  type SeedPosition,
   type ExecuteOrderInput,
 } from './application/portfolio/portfolio';
 
