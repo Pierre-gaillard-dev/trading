@@ -37,3 +37,10 @@ export {
   type PortfolioConfig,
   type ExecuteOrderInput,
 } from './application/portfolio/portfolio';
+
+// === Bot ===
+export {
+  TradingBot,
+  type TradingBotConfig,
+  type RiskParams,
+} from './application/bot/trading-bot';
