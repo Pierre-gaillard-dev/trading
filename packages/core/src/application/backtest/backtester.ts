@@ -37,6 +37,8 @@ export interface EquityPoint {
 }
 
 export interface BacktestResult {
+  /** Nombre de bougies réellement analysées. */
+  candleCount: number;
   initialEquity: string;
   finalEquity: string;
   /** Gain/perte = équité finale − capital initial. */
@@ -142,6 +144,7 @@ export function runBacktest(input: BacktestInput): BacktestResult {
       : pct(new Decimal(last.close).minus(first.close), new Decimal(first.close));
 
   return {
+    candleCount: candles.length,
     initialEquity: initialCash.toFixed(MONEY_DP),
     finalEquity: finalEquity.toFixed(MONEY_DP),
     pnl: pnl.toFixed(MONEY_DP),
