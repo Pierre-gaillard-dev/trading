@@ -1,5 +1,5 @@
 import { getToken } from '../auth/auth-store';
-import type { WatchedSymbol } from '@trading/shared';
+import type { WatchedSymbol, PortfolioDto } from '@trading/shared';
 
 interface LoginResponse {
   token: string;
@@ -64,6 +64,36 @@ export async function addWatched(symbol: string): Promise<WatchedSymbol[]> {
 /** Retire une crypto de la watchlist. */
 export async function removeWatched(symbol: string): Promise<void> {
   const response = await authFetch(`/api/watchlist/${symbol}`, { method: 'DELETE' });
+  if (!response.ok) {
+    throw new Error(await errorMessage(response, 'Suppression échouée.'));
+  }
+}
+
+/** Liste les portefeuilles de l'utilisateur connecté. */
+export async function fetchPortfolios(): Promise<PortfolioDto[]> {
+  const response = await authFetch('/api/portfolios');
+  if (!response.ok) {
+    throw new Error(await errorMessage(response, 'Chargement des portefeuilles échoué.'));
+  }
+  return (await response.json()) as PortfolioDto[];
+}
+
+/** Crée un portefeuille (nom + capital initial fictif). */
+export async function createPortfolio(name: string, initialCash: string): Promise<PortfolioDto> {
+  const response = await authFetch('/api/portfolios', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, initialCash }),
+  });
+  if (!response.ok) {
+    throw new Error(await errorMessage(response, 'Création échouée.'));
+  }
+  return (await response.json()) as PortfolioDto;
+}
+
+/** Supprime un portefeuille. */
+export async function removePortfolio(id: string): Promise<void> {
+  const response = await authFetch(`/api/portfolios/${id}`, { method: 'DELETE' });
   if (!response.ok) {
     throw new Error(await errorMessage(response, 'Suppression échouée.'));
   }

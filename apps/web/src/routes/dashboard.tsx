@@ -6,6 +6,7 @@ import { useMarket } from '../market/use-market';
 import { CandleChart } from '../market/candle-chart';
 import { useWatchlist } from '../watchlist/use-watchlist';
 import { Watchlist } from '../watchlist/watchlist';
+import { Portfolios } from '../portfolio/portfolios';
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -92,6 +93,8 @@ export function DashboardPage() {
         <section className='rounded-xl bg-white p-4 shadow'>
           <CandleChart candles={candles} />
         </section>
+
+        <Portfolios />
 
         <Watchlist
           items={items}
