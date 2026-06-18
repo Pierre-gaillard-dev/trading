@@ -24,3 +24,9 @@ export {
   type PublicUser,
   type MeResponse,
 } from './schemas/auth';
+export {
+  candleSchema,
+  marketMessageSchema,
+  type Candle,
+  type MarketMessage,
+} from './schemas/market';
