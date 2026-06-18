@@ -13,6 +13,8 @@ export const createBotSchema = z.object({
     ),
   strategyKey: z.string().min(1),
   params: z.record(z.string(), z.unknown()).optional(),
+  /** Part du cash investie par achat (0–1). */
+  buyFraction: z.number().gt(0).max(1).optional(),
 });
 export type CreateBot = z.infer<typeof createBotSchema>;
 

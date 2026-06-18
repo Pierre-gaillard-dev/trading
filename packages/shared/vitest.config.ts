@@ -16,6 +16,13 @@ export default defineConfig({
           include: ['src/utils/**/*.test.ts'],
         },
       },
+      {
+        extends: true,
+        test: {
+          name: 'shared:schemas',
+          include: ['src/schemas/**/*.test.ts'],
+        },
+      },
     ],
   },
 });
