@@ -128,6 +128,22 @@ describe('routes bots', () => {
     });
   });
 
+  describe('GET /api/strategies', () => {
+    it('renvoie la liste des stratégies disponibles', async () => {
+      const response = await app.inject({ method: 'GET', url: '/api/strategies', headers: auth() });
+      expect(response.statusCode).toBe(200);
+      const keys = JSON.parse(response.body);
+      expect(keys).toContain('ma_crossover');
+      expect(keys).toContain('buy_and_hold');
+      expect(keys.length).toBeGreaterThanOrEqual(7);
+    });
+
+    it('exige une authentification', async () => {
+      const response = await app.inject({ method: 'GET', url: '/api/strategies' });
+      expect(response.statusCode).toBe(401);
+    });
+  });
+
   describe('GET /api/bots', () => {
     it('liste uniquement les bots de l’utilisateur courant', async () => {
       await app.inject({ method: 'POST', url: '/api/bots', headers: auth(), payload: createBody() });
