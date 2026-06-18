@@ -44,8 +44,7 @@ model BotConfig {
   portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   symbol      String
   interval    String
-  strategyKey String
-  params      Json      @default("{}")
+  strategies  Json      @default("[]") // [{ strategyKey, weight, params }] : ensemble pondéré
   buyFraction Float     @default(0.1) // part du cash investie à chaque achat (0–1)
   createdAt   DateTime  @default(now())
 }

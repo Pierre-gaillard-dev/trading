@@ -1,16 +1,23 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { createPortfolioSchema } from '@trading/shared';
 import type { PortfolioRepository } from '../repositories/portfolio.repository';
+import { buildPortfolioSummary } from '../services/portfolio-summary';
+
+/** Source de prix minimale (dernier prix connu d'un symbole). */
+export interface PriceSource {
+  getLastPrice(symbol: string): Promise<number | null>;
+}
 
 export interface PortfolioControllerDeps {
   portfolios: PortfolioRepository;
+  prices: PriceSource;
 }
 
 function currentUserId(request: FastifyRequest): string {
   return (request.user as { sub: string }).sub;
 }
 
-export function createPortfolioController({ portfolios }: PortfolioControllerDeps) {
+export function createPortfolioController({ portfolios, prices }: PortfolioControllerDeps) {
   async function list(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
     const items = await portfolios.listByUser(currentUserId(request));
     return reply.send(items);
@@ -58,5 +65,19 @@ export function createPortfolioController({ portfolios }: PortfolioControllerDep
     return reply.send(await portfolios.listPositions(id));
   }
 
-  return { list, create, remove, trades, positions };
+  async function summary(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
+    const { id } = request.params as { id: string };
+    const record = await portfolios.findById(currentUserId(request), id);
+    if (record === null) {
+      return reply.code(404).send({ error: 'Portefeuille introuvable.' });
+    }
+    const held = await portfolios.listPositions(id);
+    const uniqueSymbols = [...new Set(held.map((p) => p.symbol))];
+    const priceList = await Promise.all(
+      uniqueSymbols.map(async (symbol) => [symbol, await prices.getLastPrice(symbol)] as const),
+    );
+    return reply.send(buildPortfolioSummary(record, held, new Map(priceList)));
+  }
+
+  return { list, create, remove, trades, positions, summary };
 }

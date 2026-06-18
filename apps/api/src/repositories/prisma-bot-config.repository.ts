@@ -2,6 +2,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import type {
   BotConfigRecord,
   BotConfigRepository,
+  BotStrategyConfig,
   NewBotConfig,
 } from './bot-config.repository';
 
@@ -11,8 +12,7 @@ interface BotConfigRow {
   portfolioId: string;
   symbol: string;
   interval: string;
-  strategyKey: string;
-  params: unknown;
+  strategies: unknown;
   buyFraction: number;
 }
 
@@ -23,8 +23,7 @@ function toRecord(row: BotConfigRow): BotConfigRecord {
     portfolioId: row.portfolioId,
     symbol: row.symbol,
     interval: row.interval,
-    strategyKey: row.strategyKey,
-    params: row.params,
+    strategies: (Array.isArray(row.strategies) ? row.strategies : []) as BotStrategyConfig[],
     buyFraction: row.buyFraction,
   };
 }
@@ -40,8 +39,7 @@ export class PrismaBotConfigRepository implements BotConfigRepository {
         portfolioId: input.portfolioId,
         symbol: input.symbol,
         interval: input.interval,
-        strategyKey: input.strategyKey,
-        params: (input.params ?? {}) as Prisma.InputJsonValue,
+        strategies: input.strategies as unknown as Prisma.InputJsonValue,
         buyFraction: input.buyFraction,
       },
     });

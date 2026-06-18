@@ -6,6 +6,7 @@ import { BotManager } from './workers/bot-manager';
 import { PrismaCandleRepository } from './repositories/prisma-candle.repository';
 import { PrismaPortfolioRepository } from './repositories/prisma-portfolio.repository';
 import { PrismaBotConfigRepository } from './repositories/prisma-bot-config.repository';
+import { SystemRandom } from './services/system-random';
 
 // Les bougies sont persistées en base (cache partagé dashboard + workers).
 const candleRepository = new PrismaCandleRepository();
@@ -17,9 +18,20 @@ const marketRegistry = new MarketRegistry(candleRepository);
 // Distribue les bougies clôturées aux workers (avec l'historique depuis la DB).
 const workerManager = new WorkerManager(marketRegistry, candleRepository);
 // Démarre/arrête les bots de trading (persistés → relancés au démarrage).
-const botManager = new BotManager(workerManager, portfolioRepository, botConfigRepository);
+// Aléa réel injecté (Math.random) ; le cœur reste déterministe et testable.
+const botManager = new BotManager(
+  workerManager,
+  portfolioRepository,
+  botConfigRepository,
+  new SystemRandom(),
+);
 
-const app = buildApp({ marketRegistry, botManager, portfolioRepository });
+const app = buildApp({
+  marketRegistry,
+  botManager,
+  portfolioRepository,
+  candleRepository,
+});
 const port = Number(process.env.PORT ?? 3001);
 
 app

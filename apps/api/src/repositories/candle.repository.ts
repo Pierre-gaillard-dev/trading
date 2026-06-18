@@ -11,4 +11,6 @@ export interface CandleRepository {
   saveClosedCandle(symbol: string, interval: string, candle: Candle): Promise<void>;
   /** Renvoie les `limit` dernières bougies, par ordre chronologique. */
   getRecent(symbol: string, interval: string, limit: number): Promise<Candle[]>;
+  /** Dernier prix connu d'un symbole (close de la bougie la plus récente, tous intervalles confondus), ou null. */
+  getLastPrice(symbol: string): Promise<number | null>;
 }

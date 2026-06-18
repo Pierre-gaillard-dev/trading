@@ -34,4 +34,19 @@ export class InMemoryCandleRepository implements CandleRepository {
     const all = [...this.bucket(symbol, interval).values()].sort((a, b) => a.time - b.time);
     return Promise.resolve(all.slice(-limit));
   }
+
+  getLastPrice(symbol: string): Promise<number | null> {
+    let latest: Candle | null = null;
+    for (const [key, bucket] of this.store) {
+      if (key.split('|')[0] !== symbol) {
+        continue;
+      }
+      for (const candle of bucket.values()) {
+        if (latest === null || candle.time > latest.time) {
+          latest = candle;
+        }
+      }
+    }
+    return Promise.resolve(latest?.close ?? null);
+  }
 }

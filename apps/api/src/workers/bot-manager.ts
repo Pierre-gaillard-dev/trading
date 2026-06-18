@@ -2,14 +2,20 @@ import {
   Portfolio,
   TradingBot,
   FixedFractionSizing,
-  createStrategy,
+  createEnsemble,
+  type EnsembleEntry,
+  type RandomSource,
   type StrategyKey,
   type SymbolSpec,
   type RiskParams,
   type SeedPosition,
 } from '@trading/core';
 import type { PortfolioRepository } from '../repositories/portfolio.repository';
-import type { BotConfigRecord, BotConfigRepository } from '../repositories/bot-config.repository';
+import type {
+  BotConfigRecord,
+  BotConfigRepository,
+  BotStrategyConfig,
+} from '../repositories/bot-config.repository';
 import { BotRunner } from './bot-runner';
 import type { WorkerManager } from './worker-manager';
 
@@ -18,13 +24,16 @@ function defaultSymbolSpec(symbol: string): SymbolSpec {
   return { symbol, basePrecision: 8, quotePrecision: 2, stepSize: '0.00001', minNotional: '10' };
 }
 
+/** Clé stable identifiant un trade décidé par l'ensemble pondéré. */
+const ENSEMBLE_KEY = 'ensemble';
+
 export interface CreateBotInput {
   userId: string;
   portfolioId: string;
   symbol: string;
   interval: string;
-  strategyKey: StrategyKey;
-  params?: unknown;
+  /** Stratégies pondérées qui composent le bot (au moins une). */
+  strategies: BotStrategyConfig[];
   /** Part du cash investie à chaque achat (0–1). Défaut 0,10. */
   buyFraction?: number;
   risk?: RiskParams;
@@ -37,7 +46,7 @@ export interface RunningBot {
   portfolioId: string;
   symbol: string;
   interval: string;
-  strategyKey: StrategyKey;
+  strategies: { strategyKey: string; weight: number }[];
 }
 
 /** Démarre/arrête les bots, les persiste, et les relance au démarrage du serveur. */
@@ -48,6 +57,7 @@ export class BotManager {
     private readonly workers: WorkerManager,
     private readonly portfolios: PortfolioRepository,
     private readonly botConfigs: BotConfigRepository,
+    private readonly random: RandomSource,
   ) {}
 
   async start(input: CreateBotInput): Promise<RunningBot> {
@@ -60,8 +70,7 @@ export class BotManager {
       portfolioId: input.portfolioId,
       symbol: input.symbol,
       interval: input.interval,
-      strategyKey: input.strategyKey,
-      params: input.params ?? {},
+      strategies: input.strategies,
       buyFraction: input.buyFraction ?? DEFAULT_BUY_FRACTION,
     });
     const running = await this.run(config);
@@ -112,7 +121,7 @@ export class BotManager {
           portfolioId: bot.portfolioId,
           symbol: bot.symbol,
           interval: bot.interval,
-          strategyKey: bot.strategyKey,
+          strategies: bot.strategies,
         });
       }
     }
@@ -136,17 +145,21 @@ export class BotManager {
       avgEntryPrice: p.avgEntryPrice,
     }));
 
-    const strategyKey = config.strategyKey as StrategyKey;
     const portfolio = new Portfolio({
       cash: record.cash,
       feeRate: record.feeRate,
       slippageBps: record.slippageBps,
       positions,
     });
+    const entries: EnsembleEntry[] = config.strategies.map((s) => ({
+      key: s.strategyKey as StrategyKey,
+      weight: s.weight,
+      params: s.params,
+    }));
     const bot = new TradingBot({
       symbol: config.symbol,
       spec: defaultSymbolSpec(config.symbol),
-      strategy: createStrategy(strategyKey, config.params),
+      strategy: createEnsemble(entries, this.random),
       sizing: new FixedFractionSizing(config.buyFraction),
       portfolio,
     });
@@ -156,19 +169,23 @@ export class BotManager {
       portfolioId: config.portfolioId,
       symbol: config.symbol,
       interval: config.interval,
-      strategyKey,
+      strategyKey: ENSEMBLE_KEY,
       portfolio,
       bot,
       portfolios: this.portfolios,
     });
     this.workers.start(runner);
 
+    const strategies = config.strategies.map((s) => ({
+      strategyKey: s.strategyKey,
+      weight: s.weight,
+    }));
     const running: RunningBot = {
       id: config.id,
       portfolioId: config.portfolioId,
       symbol: config.symbol,
       interval: config.interval,
-      strategyKey,
+      strategies,
     };
     this.bots.set(config.id, { ...running, userId: config.userId });
     return running;

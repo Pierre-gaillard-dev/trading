@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { STRATEGY_KEYS, type StrategyKey } from '@trading/core';
+import { STRATEGY_KEYS } from '@trading/core';
 import { createBotSchema } from '@trading/shared';
 import type { BotManager } from '../workers/bot-manager';
 
@@ -20,8 +20,10 @@ export function createBotController({ bots }: BotControllerDeps) {
         .send({ error: 'Requête invalide.', details: parsed.error.flatten().fieldErrors });
     }
     const data = parsed.data;
-    if (!(STRATEGY_KEYS as readonly string[]).includes(data.strategyKey)) {
-      return reply.code(400).send({ error: `Stratégie inconnue : ${data.strategyKey}` });
+    const known = STRATEGY_KEYS as readonly string[];
+    const unknownKey = data.strategies.find((s) => !known.includes(s.strategyKey));
+    if (unknownKey !== undefined) {
+      return reply.code(400).send({ error: `Stratégie inconnue : ${unknownKey.strategyKey}` });
     }
 
     try {
@@ -30,8 +32,11 @@ export function createBotController({ bots }: BotControllerDeps) {
         portfolioId: data.portfolioId,
         symbol: data.symbol.toUpperCase(),
         interval: data.interval,
-        strategyKey: data.strategyKey as StrategyKey,
-        params: data.params,
+        strategies: data.strategies.map((s) => ({
+          strategyKey: s.strategyKey,
+          weight: s.weight,
+          params: s.params,
+        })),
         buyFraction: data.buyFraction,
       });
       return reply.code(201).send(bot);

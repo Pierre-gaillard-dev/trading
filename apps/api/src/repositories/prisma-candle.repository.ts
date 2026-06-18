@@ -57,4 +57,13 @@ export class PrismaCandleRepository implements CandleRepository {
         volume: r.volume,
       }));
   }
+
+  async getLastPrice(symbol: string): Promise<number | null> {
+    const row = await this.db.candle.findFirst({
+      where: { symbol },
+      orderBy: { openTime: 'desc' },
+      select: { close: true },
+    });
+    return row?.close ?? null;
+  }
 }
