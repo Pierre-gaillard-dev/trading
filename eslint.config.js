@@ -11,4 +11,12 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
   },
+  // Tests : on tolère des tournures pratiques (assertions non-null, noop des test doubles).
+  {
+    files: ['**/*.test.ts'],
+    rules: {
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/no-empty-function': 'off',
+    },
+  },
 );
