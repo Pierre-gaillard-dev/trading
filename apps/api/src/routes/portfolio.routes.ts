@@ -13,4 +13,6 @@ export function portfolioRoutes(app: FastifyInstance, options: PortfolioRoutesOp
   app.get('/api/portfolios', { preHandler: requireAuth }, controller.list);
   app.post('/api/portfolios', { preHandler: requireAuth }, controller.create);
   app.delete('/api/portfolios/:id', { preHandler: requireAuth }, controller.remove);
+  app.get('/api/portfolios/:id/trades', { preHandler: requireAuth }, controller.trades);
+  app.get('/api/portfolios/:id/positions', { preHandler: requireAuth }, controller.positions);
 }

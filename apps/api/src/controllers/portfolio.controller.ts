@@ -39,5 +39,24 @@ export function createPortfolioController({ portfolios }: PortfolioControllerDep
     return reply.code(204).send();
   }
 
-  return { list, create, remove };
+  async function trades(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
+    const { id } = request.params as { id: string };
+    const owned = await portfolios.findById(currentUserId(request), id);
+    if (owned === null) {
+      return reply.code(404).send({ error: 'Portefeuille introuvable.' });
+    }
+    const { symbol } = request.query as { symbol?: string };
+    return reply.send(await portfolios.listTrades(id, { symbol, limit: 200 }));
+  }
+
+  async function positions(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
+    const { id } = request.params as { id: string };
+    const owned = await portfolios.findById(currentUserId(request), id);
+    if (owned === null) {
+      return reply.code(404).send({ error: 'Portefeuille introuvable.' });
+    }
+    return reply.send(await portfolios.listPositions(id));
+  }
+
+  return { list, create, remove, trades, positions };
 }

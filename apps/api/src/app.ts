@@ -5,6 +5,7 @@ import { authRoutes } from './routes/auth.routes';
 import { marketRoutes } from './routes/market.routes';
 import { watchlistRoutes } from './routes/watchlist.routes';
 import { portfolioRoutes } from './routes/portfolio.routes';
+import { botRoutes } from './routes/bot.routes';
 import { PrismaUserRepository } from './repositories/prisma-user.repository';
 import { PrismaWatchlistRepository } from './repositories/prisma-watchlist.repository';
 import { PrismaPortfolioRepository } from './repositories/prisma-portfolio.repository';
@@ -13,6 +14,7 @@ import type { UserRepository } from './repositories/user.repository';
 import type { WatchlistRepository } from './repositories/watchlist.repository';
 import type { PortfolioRepository } from './repositories/portfolio.repository';
 import type { MarketRegistry } from './services/binance/market.registry';
+import type { BotManager } from './workers/bot-manager';
 
 export interface BuildAppOptions {
   /** Repository des utilisateurs ; par défaut Prisma (Postgres). En test : InMemoryUserRepository. */
@@ -27,6 +29,8 @@ export interface BuildAppOptions {
   logger?: boolean;
   /** Registre des flux de marché ; si fourni, active le WebSocket /ws/market (multi-symboles). */
   marketRegistry?: MarketRegistry;
+  /** Gestionnaire de bots ; si fourni, active les routes /api/bots et /api/strategies. */
+  botManager?: BotManager;
 }
 
 /**
@@ -54,6 +58,11 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   if (options.marketRegistry) {
     void app.register(fastifyWebsocket);
     void app.register(marketRoutes, { registry: options.marketRegistry });
+  }
+
+  // Bots (optionnel : seulement si un BotManager est fourni).
+  if (options.botManager) {
+    void app.register(botRoutes, { bots: options.botManager });
   }
 
   return app;

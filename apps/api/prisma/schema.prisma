@@ -21,16 +21,45 @@ model User {
 
 // Portefeuille fictif d'un utilisateur (argent 100 % fictif).
 model Portfolio {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   name         String
-  baseCurrency String   @default("USDT")
-  initialCash  Decimal  @db.Decimal(24, 8)
-  cash         Decimal  @db.Decimal(24, 8)
-  feeRate      Decimal  @db.Decimal(10, 6)
+  baseCurrency String     @default("USDT")
+  initialCash  Decimal    @db.Decimal(24, 8)
+  cash         Decimal    @db.Decimal(24, 8)
+  feeRate      Decimal    @db.Decimal(10, 6)
   slippageBps  Int
-  createdAt    DateTime @default(now())
+  createdAt    DateTime   @default(now())
+  positions    Position[]
+  trades       Trade[]
+}
+
+// Position détenue par un portefeuille sur un symbole (v1 : long uniquement).
+model Position {
+  portfolioId   String
+  portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  symbol        String
+  quantity      Decimal   @db.Decimal(28, 12)
+  avgEntryPrice Decimal   @db.Decimal(24, 8)
+
+  @@id([portfolioId, symbol])
+}
+
+// Trade exécuté (fictif) par un bot.
+model Trade {
+  id          String    @id @default(cuid())
+  portfolioId String
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  symbol      String
+  side        String // BUY | SELL
+  quantity    Decimal   @db.Decimal(28, 12)
+  price       Decimal   @db.Decimal(24, 8)
+  fee         Decimal   @db.Decimal(24, 8)
+  candleTime  Int // openTime de la bougie (secondes) — pour aligner les marqueurs du graphe
+  executedAt  DateTime  @default(now())
+
+  @@index([portfolioId, symbol])
 }
 
 // Une crypto suivie par un utilisateur (watchlist).
