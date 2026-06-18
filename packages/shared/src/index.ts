@@ -27,7 +27,9 @@ export {
 export {
   candleSchema,
   marketMessageSchema,
+  CANDLE_INTERVALS,
   type Candle,
+  type CandleInterval,
   type MarketMessage,
 } from './schemas/market';
 export {

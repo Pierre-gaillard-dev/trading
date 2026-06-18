@@ -15,6 +15,10 @@ export const candleSchema = z.object({
 });
 export type Candle = z.infer<typeof candleSchema>;
 
+/** Intervalles de bougie proposés (doivent être des intervalles Binance valides). */
+export const CANDLE_INTERVALS = ['1m', '15m', '1h', '1d'] as const;
+export type CandleInterval = (typeof CANDLE_INTERVALS)[number];
+
 /**
  * Messages poussés par le serveur sur le WebSocket /ws/market.
  * - snapshot : envoyé à la connexion (prix courant + historique des bougies)
