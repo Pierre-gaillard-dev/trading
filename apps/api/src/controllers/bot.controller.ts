@@ -43,9 +43,9 @@ export function createBotController({ bots }: BotControllerDeps) {
     return reply.send(bots.list(currentUserId(request)));
   }
 
-  function remove(request: FastifyRequest, reply: FastifyReply): FastifyReply {
+  async function remove(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
     const { id } = request.params as { id: string };
-    const stopped = bots.stop(currentUserId(request), id);
+    const stopped = await bots.stop(currentUserId(request), id);
     return reply.code(stopped ? 204 : 404).send();
   }
 

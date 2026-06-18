@@ -33,6 +33,20 @@ model Portfolio {
   createdAt    DateTime   @default(now())
   positions    Position[]
   trades       Trade[]
+  bots         BotConfig[]
+}
+
+// Configuration d'un bot persistée → relancée au démarrage du serveur.
+model BotConfig {
+  id          String    @id @default(cuid())
+  userId      String
+  portfolioId String
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  symbol      String
+  interval    String
+  strategyKey String
+  params      Json      @default("{}")
+  createdAt   DateTime  @default(now())
 }
 
 // Position détenue par un portefeuille sur un symbole (v1 : long uniquement).
