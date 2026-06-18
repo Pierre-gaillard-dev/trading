@@ -16,6 +16,21 @@ model User {
   passwordHash String
   createdAt    DateTime        @default(now())
   watched      WatchedSymbol[]
+  portfolios   Portfolio[]
+}
+
+// Portefeuille fictif d'un utilisateur (argent 100 % fictif).
+model Portfolio {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  baseCurrency String   @default("USDT")
+  initialCash  Decimal  @db.Decimal(24, 8)
+  cash         Decimal  @db.Decimal(24, 8)
+  feeRate      Decimal  @db.Decimal(10, 6)
+  slippageBps  Int
+  createdAt    DateTime @default(now())
 }
 
 // Une crypto suivie par un utilisateur (watchlist).

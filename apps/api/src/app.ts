@@ -4,11 +4,14 @@ import fastifyWebsocket from '@fastify/websocket';
 import { authRoutes } from './routes/auth.routes';
 import { marketRoutes } from './routes/market.routes';
 import { watchlistRoutes } from './routes/watchlist.routes';
+import { portfolioRoutes } from './routes/portfolio.routes';
 import { PrismaUserRepository } from './repositories/prisma-user.repository';
 import { PrismaWatchlistRepository } from './repositories/prisma-watchlist.repository';
+import { PrismaPortfolioRepository } from './repositories/prisma-portfolio.repository';
 import { symbolExists as binanceSymbolExists } from './services/binance/binance.client';
 import type { UserRepository } from './repositories/user.repository';
 import type { WatchlistRepository } from './repositories/watchlist.repository';
+import type { PortfolioRepository } from './repositories/portfolio.repository';
 import type { MarketRegistry } from './services/binance/market.registry';
 
 export interface BuildAppOptions {
@@ -18,6 +21,8 @@ export interface BuildAppOptions {
   watchlistRepository?: WatchlistRepository;
   /** Vérifie qu'un symbole existe ; par défaut Binance. En test : un faux. */
   symbolExists?: (symbol: string) => Promise<boolean>;
+  /** Repository des portefeuilles ; par défaut Prisma. En test : InMemoryPortfolioRepository. */
+  portfolioRepository?: PortfolioRepository;
   /** Force les logs Fastify. Par défaut activés, sauf en test (coupés automatiquement). */
   logger?: boolean;
   /** Registre des flux de marché ; si fourni, active le WebSocket /ws/market (multi-symboles). */
@@ -36,12 +41,14 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
 
   const users = options.userRepository ?? new PrismaUserRepository();
   const watchlist = options.watchlistRepository ?? new PrismaWatchlistRepository();
+  const portfolios = options.portfolioRepository ?? new PrismaPortfolioRepository();
   const symbolExists = options.symbolExists ?? binanceSymbolExists;
   const secret = process.env.JWT_SECRET ?? 'dev-secret-change-me';
 
   void app.register(fastifyJwt, { secret });
   void app.register(authRoutes, { users });
   void app.register(watchlistRoutes, { watchlist, symbolExists });
+  void app.register(portfolioRoutes, { portfolios });
 
   // Données de marché temps réel (optionnel : seulement si un registre est fourni).
   if (options.marketRegistry) {
