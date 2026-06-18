@@ -74,6 +74,7 @@ export function TradingPanel({
             <tr>
               <th className='py-1'>Date</th>
               <th>Sens</th>
+              <th>Stratégie</th>
               <th className='text-right'>Quantité</th>
               <th className='text-right'>Prix</th>
               <th className='text-right'>Frais</th>
@@ -86,6 +87,7 @@ export function TradingPanel({
                 <td className={trade.side === 'BUY' ? 'text-green-600' : 'text-red-600'}>
                   {trade.side === 'BUY' ? 'Achat' : 'Vente'}
                 </td>
+                <td className='text-slate-600'>{trade.strategyKey}</td>
                 <td className='text-right'>{num(trade.quantity, 6)}</td>
                 <td className='text-right'>{num(trade.price)}</td>
                 <td className='text-right text-slate-500'>{num(trade.fee)}</td>
