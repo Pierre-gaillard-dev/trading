@@ -68,6 +68,7 @@ export {
   backtestResultSchema,
   backtestTradeSchema,
   equityPointSchema,
+  pricePointSchema,
   type RunBacktest,
   type BacktestResultDto,
 } from './schemas/backtest';

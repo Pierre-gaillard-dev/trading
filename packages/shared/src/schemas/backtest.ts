@@ -40,6 +40,12 @@ export const equityPointSchema = z.object({
   equity: z.string(),
 });
 
+/** Un point de la courbe de prix (clôture de la crypto). */
+export const pricePointSchema = z.object({
+  time: z.number(),
+  price: z.number(),
+});
+
 /** Résultat chiffré d'un backtest. */
 export const backtestResultSchema = z.object({
   candleCount: z.number(),
@@ -55,5 +61,6 @@ export const backtestResultSchema = z.object({
   buyHoldPnlPct: z.string(),
   trades: z.array(backtestTradeSchema),
   equityCurve: z.array(equityPointSchema),
+  priceCurve: z.array(pricePointSchema),
 });
 export type BacktestResultDto = z.infer<typeof backtestResultSchema>;
