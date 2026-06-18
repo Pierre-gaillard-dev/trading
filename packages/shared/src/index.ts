@@ -30,3 +30,11 @@ export {
   type Candle,
   type MarketMessage,
 } from './schemas/market';
+export {
+  addWatchedSymbolSchema,
+  watchedSymbolSchema,
+  watchlistResponseSchema,
+  type AddWatchedSymbol,
+  type WatchedSymbol,
+  type WatchlistResponse,
+} from './schemas/watchlist';
