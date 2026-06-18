@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { CANDLE_INTERVALS, type BacktestResultDto, type CandleInterval } from '@trading/shared';
 import { fetchStrategies, runBacktest } from '../lib/api';
 import { StrategyPicker, useStrategyPicks } from '../bot/strategy-picker';
-import { EquityCurve } from './equity-curve';
+import { BacktestChart } from './backtest-chart';
 
 function pnlClass(value: string): string {
   return Number(value) >= 0 ? 'text-green-600' : 'text-red-600';
@@ -200,7 +200,11 @@ export function Backtest() {
           </p>
 
           {result.equityCurve.length > 0 && (
-            <EquityCurve points={result.equityCurve} trades={result.trades} />
+            <BacktestChart
+              equity={result.equityCurve}
+              price={result.priceCurve}
+              trades={result.trades}
+            />
           )}
         </div>
       )}
