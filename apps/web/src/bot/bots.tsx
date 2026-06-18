@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { CANDLE_INTERVALS, type PortfolioDto } from '@trading/shared';
 import { useBots } from './use-bots';
+import { StrategyPicker, useStrategyPicks } from './strategy-picker';
 
 export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
   const { items, strategies, error, create, stop } = useBots();
@@ -8,31 +9,13 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [interval, setInterval] = useState<string>('1m');
   const [buyPct, setBuyPct] = useState('10');
-  // strategyKey -> poids (en chaîne). La présence dans l'objet = stratégie activée.
-  const [picks, setPicks] = useState<Record<string, string>>({});
+  const picker = useStrategyPicks();
 
   const effectivePortfolio = portfolioId || portfolios[0]?.id || '';
 
-  function toggle(key: string): void {
-    setPicks((current) => {
-      if (key in current) {
-        return Object.fromEntries(Object.entries(current).filter(([k]) => k !== key));
-      }
-      return { ...current, [key]: '1' };
-    });
-  }
-
-  function setWeight(key: string, value: string): void {
-    setPicks((current) => ({ ...current, [key]: value }));
-  }
-
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const chosen = Object.entries(picks)
-      .map(([strategyKey, raw]) => {
-        const weight = Number(raw);
-        return { strategyKey, weight: Number.isFinite(weight) && weight > 0 ? weight : 1 };
-      });
+    const chosen = picker.entries();
     if (effectivePortfolio === '' || chosen.length === 0) {
       return;
     }
@@ -45,7 +28,7 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
       strategies: chosen,
       buyFraction,
     });
-    setPicks({});
+    picker.reset();
   }
 
   const portfolioName = (id: string): string => portfolios.find((p) => p.id === id)?.name ?? id;
@@ -106,41 +89,12 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
             </label>
           </div>
 
-          <div>
-            <p className='mb-1 text-xs font-medium uppercase tracking-wide text-slate-500'>
-              Stratégies & poids
-            </p>
-            <div className='grid grid-cols-1 gap-1 sm:grid-cols-2'>
-              {strategies.map((key) => {
-                const active = key in picks;
-                return (
-                  <label
-                    key={key}
-                    className='flex items-center gap-2 rounded-md border border-slate-200 px-2 py-1.5 text-sm'
-                  >
-                    <input
-                      type='checkbox'
-                      checked={active}
-                      onChange={() => {
-                        toggle(key);
-                      }}
-                    />
-                    <span className='flex-1 text-slate-800'>{key}</span>
-                    <input
-                      value={active ? picks[key] : ''}
-                      onChange={(event) => {
-                        setWeight(key, event.target.value);
-                      }}
-                      disabled={!active}
-                      inputMode='decimal'
-                      placeholder='poids'
-                      className='w-16 rounded-md border border-slate-300 px-2 py-1 text-sm outline-none focus:border-slate-500 disabled:bg-slate-50 disabled:text-slate-400'
-                    />
-                  </label>
-                );
-              })}
-            </div>
-          </div>
+          <StrategyPicker
+            strategies={strategies}
+            picks={picker.picks}
+            onToggle={picker.toggle}
+            onWeight={picker.setWeight}
+          />
 
           <button
             type='submit'

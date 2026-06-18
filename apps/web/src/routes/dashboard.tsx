@@ -13,6 +13,7 @@ import { Portfolios } from '../portfolio/portfolios';
 import { PortfolioSummary } from '../portfolio/portfolio-summary';
 import { TradingPanel } from '../portfolio/trading-panel';
 import { Bots } from '../bot/bots';
+import { Backtest } from '../backtest/backtest';
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -126,6 +127,8 @@ export function DashboardPage() {
         </section>
 
         <Bots portfolios={portfolios.items} />
+
+        <Backtest />
 
         <PortfolioSummary summary={summary} />
 

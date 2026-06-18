@@ -6,6 +6,8 @@ import type {
   BotDto,
   TradeDto,
   PositionDto,
+  RunBacktest,
+  BacktestResultDto,
 } from '@trading/shared';
 
 interface LoginResponse {
@@ -132,6 +134,19 @@ export async function fetchPositions(portfolioId: string): Promise<PositionDto[]
     throw new Error(await errorMessage(response, 'Chargement des positions échoué.'));
   }
   return (await response.json()) as PositionDto[];
+}
+
+/** Lance un backtest (rejoue les stratégies sur l'historique) et renvoie le résultat. */
+export async function runBacktest(input: RunBacktest): Promise<BacktestResultDto> {
+  const response = await authFetch('/api/backtest', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    throw new Error(await errorMessage(response, 'Backtest échoué.'));
+  }
+  return (await response.json()) as BacktestResultDto;
 }
 
 /** Liste des clés de stratégies disponibles. */
