@@ -6,6 +6,7 @@ import { marketRoutes } from './routes/market.routes';
 import { watchlistRoutes } from './routes/watchlist.routes';
 import { portfolioRoutes } from './routes/portfolio.routes';
 import { botRoutes } from './routes/bot.routes';
+import { backtestRoutes } from './routes/backtest.routes';
 import { PrismaUserRepository } from './repositories/prisma-user.repository';
 import { PrismaWatchlistRepository } from './repositories/prisma-watchlist.repository';
 import { PrismaPortfolioRepository } from './repositories/prisma-portfolio.repository';
@@ -58,6 +59,8 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   void app.register(authRoutes, { users });
   void app.register(watchlistRoutes, { watchlist, symbolExists });
   void app.register(portfolioRoutes, { portfolios, prices: candles });
+  // Backtest : rejoue des stratégies sur l'historique Binance (à la demande).
+  void app.register(backtestRoutes);
 
   // Données de marché temps réel (optionnel : seulement si un registre est fourni).
   if (options.marketRegistry) {

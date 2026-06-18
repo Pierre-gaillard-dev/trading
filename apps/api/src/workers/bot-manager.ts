@@ -6,7 +6,6 @@ import {
   type EnsembleEntry,
   type RandomSource,
   type StrategyKey,
-  type SymbolSpec,
   type RiskParams,
   type SeedPosition,
 } from '@trading/core';
@@ -16,13 +15,9 @@ import type {
   BotConfigRepository,
   BotStrategyConfig,
 } from '../repositories/bot-config.repository';
+import { defaultSymbolSpec } from '../services/symbol-spec';
 import { BotRunner } from './bot-runner';
 import type { WorkerManager } from './worker-manager';
-
-/** SymbolSpec par défaut (raisonnable). À terme, récupérée de Binance exchangeInfo. */
-function defaultSymbolSpec(symbol: string): SymbolSpec {
-  return { symbol, basePrecision: 8, quotePrecision: 2, stepSize: '0.00001', minNotional: '10' };
-}
 
 /** Clé stable identifiant un trade décidé par l'ensemble pondéré. */
 const ENSEMBLE_KEY = 'ensemble';
