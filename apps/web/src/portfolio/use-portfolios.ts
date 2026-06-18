@@ -10,21 +10,48 @@ export interface PortfoliosState {
   remove: (id: string) => Promise<void>;
 }
 
-/** Gère les portefeuilles de l'utilisateur (chargement + création/suppression). */
+/** Gère les portefeuilles + rafraîchit le cash toutes les 2 s (pour voir bouger). */
 export function usePortfolios(): PortfoliosState {
   const [items, setItems] = useState<PortfolioDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+    const refresh = () => {
+      fetchPortfolios()
+        .then((data) => {
+          if (active) {
+            setItems(data);
+          }
+        })
+        .catch(() => {
+          /* rafraîchissement silencieux */
+        });
+    };
+
     fetchPortfolios()
-      .then(setItems)
+      .then((data) => {
+        if (active) {
+          setItems(data);
+        }
+      })
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : 'Erreur de chargement.');
+        if (active) {
+          setError(err instanceof Error ? err.message : 'Erreur de chargement.');
+        }
       })
       .finally(() => {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       });
+
+    const timer = setInterval(refresh, 2000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
   }, []);
 
   const create = async (name: string, initialCash: string): Promise<void> => {

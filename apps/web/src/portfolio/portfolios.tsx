@@ -1,13 +1,20 @@
 import { useState, type FormEvent } from 'react';
-import { usePortfolios } from './use-portfolios';
+import type { PortfolioDto } from '@trading/shared';
+
+export interface PortfoliosProps {
+  items: PortfolioDto[];
+  loading: boolean;
+  error: string | null;
+  onCreate: (name: string, initialCash: string) => Promise<void>;
+  onRemove: (id: string) => Promise<void>;
+}
 
 function formatMoney(value: string): string {
   const n = Number(value);
   return Number.isNaN(n) ? value : n.toLocaleString('fr-FR');
 }
 
-export function Portfolios() {
-  const { items, error, loading, create, remove } = usePortfolios();
+export function Portfolios({ items, loading, error, onCreate, onRemove }: PortfoliosProps) {
   const [name, setName] = useState('');
   const [initialCash, setInitialCash] = useState('10000');
 
@@ -16,7 +23,7 @@ export function Portfolios() {
     if (name.trim() === '' || initialCash.trim() === '') {
       return;
     }
-    await create(name.trim(), initialCash.trim());
+    await onCreate(name.trim(), initialCash.trim());
     setName('');
     setInitialCash('10000');
   }
@@ -71,7 +78,7 @@ export function Portfolios() {
               </div>
               <button
                 type='button'
-                onClick={() => void remove(portfolio.id)}
+                onClick={() => void onRemove(portfolio.id)}
                 className='text-sm text-red-600 hover:underline'
               >
                 Supprimer
