@@ -45,6 +45,8 @@ export function CandleChart({ candles, trades = [] }: { candles: Candle[]; trade
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const markersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+  // On ne recadre la vue qu'une fois par jeu de données (sinon le zoom/déplacement saute).
+  const shouldFitRef = useRef(true);
 
   // Création du graphique (une seule fois).
   useEffect(() => {
@@ -78,10 +80,23 @@ export function CandleChart({ candles, trades = [] }: { candles: Candle[]; trade
     };
   }, []);
 
-  // Mise à jour des bougies.
+  // Mise à jour des bougies. On recadre seulement au 1er affichage (ou après un
+  // changement de crypto/intervalle, qui remet `candles` à vide) → on préserve
+  // le zoom et le déplacement de l'utilisateur lors des rafraîchissements live.
   useEffect(() => {
-    seriesRef.current?.setData(toSeriesData(candles));
-    chartRef.current?.timeScale().fitContent();
+    const series = seriesRef.current;
+    if (!series) {
+      return;
+    }
+    if (candles.length === 0) {
+      shouldFitRef.current = true;
+      return;
+    }
+    series.setData(toSeriesData(candles));
+    if (shouldFitRef.current) {
+      chartRef.current?.timeScale().fitContent();
+      shouldFitRef.current = false;
+    }
   }, [candles]);
 
   // Mise à jour des marqueurs achat/vente.
