@@ -69,7 +69,7 @@ export function Backtest() {
         strategies: chosen,
         initialCash: initialCash.trim(),
         buyFraction,
-        candles: Number.isFinite(count) ? Math.min(Math.max(count, 50), 1000) : 500,
+        candles: Number.isFinite(count) ? Math.min(Math.max(count, 50), 10000) : 500,
       });
       setResult(res);
     } catch (err) {
@@ -88,7 +88,8 @@ export function Backtest() {
       <h2 className='mb-1 text-lg font-semibold text-slate-900'>Backtest</h2>
       <p className='mb-3 text-sm text-slate-500'>
         Rejoue tes stratégies sur l'historique réel — sans toucher à tes portefeuilles ni attendre
-        le live.
+        le live. Jusqu'à 10000 bougies ; pour couvrir une longue période, choisis un intervalle plus
+        grand (1h, 1d) plutôt que 1m.
       </p>
 
       <form onSubmit={(event) => void handleRun(event)} className='mb-4 space-y-3'>
@@ -144,6 +145,7 @@ export function Backtest() {
                 setCandles(event.target.value);
               }}
               inputMode='numeric'
+              placeholder='≤ 10000'
               className='w-20 rounded-md border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-500'
             />
           </label>
@@ -193,8 +195,13 @@ export function Backtest() {
               ? '✅ La stratégie a battu un simple « acheter & garder » sur cette période.'
               : '⚠️ Un simple « acheter & garder » aurait fait au moins aussi bien sur cette période.'}
           </p>
+          <p className='text-xs text-slate-400'>
+            {result.candleCount.toLocaleString('fr-FR')} bougies analysées ({interval}).
+          </p>
 
-          {result.equityCurve.length > 0 && <EquityCurve points={result.equityCurve} />}
+          {result.equityCurve.length > 0 && (
+            <EquityCurve points={result.equityCurve} trades={result.trades} />
+          )}
         </div>
       )}
     </section>
