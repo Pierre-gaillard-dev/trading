@@ -63,3 +63,11 @@ export {
   type TradeDto,
   type PositionDto,
 } from './schemas/bot';
+export {
+  runBacktestSchema,
+  backtestResultSchema,
+  backtestTradeSchema,
+  equityPointSchema,
+  type RunBacktest,
+  type BacktestResultDto,
+} from './schemas/backtest';
