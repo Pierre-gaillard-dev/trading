@@ -8,6 +8,7 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [interval, setInterval] = useState<string>('1m');
   const [strategyKey, setStrategyKey] = useState('');
+  const [buyPct, setBuyPct] = useState('10');
 
   const effectivePortfolio = portfolioId || portfolios[0]?.id || '';
   const effectiveStrategy = strategyKey || strategies[0] || '';
@@ -17,11 +18,14 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
     if (effectivePortfolio === '' || effectiveStrategy === '') {
       return;
     }
+    const pct = Number(buyPct);
+    const buyFraction = Number.isFinite(pct) && pct > 0 ? Math.min(pct, 100) / 100 : 0.1;
     await create({
       portfolioId: effectivePortfolio,
       symbol: symbol.trim().toUpperCase(),
       interval,
       strategyKey: effectiveStrategy,
+      buyFraction,
     });
   }
 
@@ -82,6 +86,17 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
               </option>
             ))}
           </select>
+          <label className='flex items-center gap-1 text-sm text-slate-600'>
+            <input
+              value={buyPct}
+              onChange={(event) => {
+                setBuyPct(event.target.value);
+              }}
+              inputMode='decimal'
+              className='w-16 rounded-md border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-500'
+            />
+            % / achat
+          </label>
           <button
             type='submit'
             className='rounded-md bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-700'

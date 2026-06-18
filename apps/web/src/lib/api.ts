@@ -141,6 +141,7 @@ export interface CreateBotInput {
   symbol: string;
   interval: string;
   strategyKey: string;
+  buyFraction: number;
 }
 
 /** Démarre un bot. */
