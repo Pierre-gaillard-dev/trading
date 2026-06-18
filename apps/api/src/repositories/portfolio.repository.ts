@@ -26,6 +26,7 @@ export interface TradeRecord {
   id: string;
   symbol: string;
   side: 'BUY' | 'SELL';
+  strategyKey: string;
   quantity: string;
   price: string;
   fee: string;
@@ -37,6 +38,7 @@ export interface NewTrade {
   portfolioId: string;
   symbol: string;
   side: 'BUY' | 'SELL';
+  strategyKey: string;
   quantity: string;
   price: string;
   fee: string;

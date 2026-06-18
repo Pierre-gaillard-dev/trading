@@ -53,6 +53,7 @@ model Trade {
   portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   symbol      String
   side        String // BUY | SELL
+  strategyKey String    @default("") // quelle stratégie a déclenché ce trade
   quantity    Decimal   @db.Decimal(28, 12)
   price       Decimal   @db.Decimal(24, 8)
   fee         Decimal   @db.Decimal(24, 8)

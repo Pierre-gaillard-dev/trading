@@ -8,6 +8,7 @@ export interface BotRunnerDeps {
   portfolioId: string;
   symbol: string;
   interval: string;
+  strategyKey: string;
   portfolio: Portfolio;
   bot: TradingBot;
   portfolios: PortfolioRepository;
@@ -71,6 +72,7 @@ export class BotRunner implements Worker {
       portfolioId,
       symbol,
       side: fill.side,
+      strategyKey: this.deps.strategyKey,
       quantity: fill.quantity.toString(),
       price: fill.execPrice.toString(),
       fee: fill.fee.toString(),

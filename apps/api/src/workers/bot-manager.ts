@@ -71,6 +71,7 @@ export class BotManager {
       portfolioId: input.portfolioId,
       symbol: input.symbol,
       interval: input.interval,
+      strategyKey: input.strategyKey,
       portfolio,
       bot,
       portfolios: this.portfolios,
