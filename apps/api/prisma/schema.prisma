@@ -11,8 +11,20 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String          @id @default(cuid())
+  email        String          @unique
   passwordHash String
-  createdAt    DateTime @default(now())
+  createdAt    DateTime        @default(now())
+  watched      WatchedSymbol[]
+}
+
+// Une crypto suivie par un utilisateur (watchlist).
+model WatchedSymbol {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symbol    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, symbol])
 }

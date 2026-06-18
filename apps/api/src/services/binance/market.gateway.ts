@@ -29,17 +29,23 @@ export class MarketHub {
   constructor(options: MarketHubOptions) {
     this.symbol = options.symbol;
     this.interval = options.interval;
-    this.historyLimit = options.historyLimit ?? 200;
+    this.historyLimit = options.historyLimit ?? 500;
   }
 
   async start(): Promise<void> {
     try {
       this.candles = await fetchRecentCandles(this.symbol, this.interval, this.historyLimit);
       this.lastPrice = this.candles.at(-1)?.close ?? null;
+      // Les clients déjà connectés (avant la fin du backfill) reçoivent l'historique.
+      this.broadcastSnapshot();
     } catch (error) {
       console.warn('[market] backfill REST échoué :', (error as Error).message);
     }
     this.connect();
+  }
+
+  get clientCount(): number {
+    return this.clients.size;
   }
 
   stop(): void {
@@ -53,16 +59,24 @@ export class MarketHub {
   /** Abonne un client front : envoie le snapshot puis le branche sur les mises à jour. */
   addClient(socket: WebSocket): void {
     this.clients.add(socket);
-    this.send(socket, {
+    this.send(socket, this.snapshot());
+    socket.on('close', () => {
+      this.clients.delete(socket);
+    });
+  }
+
+  private snapshot(): MarketMessage {
+    return {
       type: 'snapshot',
       symbol: this.symbol,
       interval: this.interval,
       price: this.lastPrice,
       candles: this.candles,
-    });
-    socket.on('close', () => {
-      this.clients.delete(socket);
-    });
+    };
+  }
+
+  private broadcastSnapshot(): void {
+    this.broadcast(this.snapshot());
   }
 
   private connect(): void {

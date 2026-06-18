@@ -3,17 +3,25 @@ import fastifyJwt from '@fastify/jwt';
 import fastifyWebsocket from '@fastify/websocket';
 import { authRoutes } from './routes/auth.routes';
 import { marketRoutes } from './routes/market.routes';
+import { watchlistRoutes } from './routes/watchlist.routes';
 import { PrismaUserRepository } from './repositories/prisma-user.repository';
+import { PrismaWatchlistRepository } from './repositories/prisma-watchlist.repository';
+import { symbolExists as binanceSymbolExists } from './services/binance/binance.client';
 import type { UserRepository } from './repositories/user.repository';
-import type { MarketHub } from './services/binance/market.gateway';
+import type { WatchlistRepository } from './repositories/watchlist.repository';
+import type { MarketRegistry } from './services/binance/market.registry';
 
 export interface BuildAppOptions {
   /** Repository des utilisateurs ; par défaut Prisma (Postgres). En test : InMemoryUserRepository. */
   userRepository?: UserRepository;
+  /** Repository de la watchlist ; par défaut Prisma. En test : InMemoryWatchlistRepository. */
+  watchlistRepository?: WatchlistRepository;
+  /** Vérifie qu'un symbole existe ; par défaut Binance. En test : un faux. */
+  symbolExists?: (symbol: string) => Promise<boolean>;
   /** Force les logs Fastify. Par défaut activés, sauf en test (coupés automatiquement). */
   logger?: boolean;
-  /** Hub de données de marché ; si fourni, active le WebSocket /ws/market. */
-  marketHub?: MarketHub;
+  /** Registre des flux de marché ; si fourni, active le WebSocket /ws/market (multi-symboles). */
+  marketRegistry?: MarketRegistry;
 }
 
 /**
@@ -27,15 +35,18 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   const app = Fastify({ logger: options.logger ?? !isTest });
 
   const users = options.userRepository ?? new PrismaUserRepository();
+  const watchlist = options.watchlistRepository ?? new PrismaWatchlistRepository();
+  const symbolExists = options.symbolExists ?? binanceSymbolExists;
   const secret = process.env.JWT_SECRET ?? 'dev-secret-change-me';
 
   void app.register(fastifyJwt, { secret });
   void app.register(authRoutes, { users });
+  void app.register(watchlistRoutes, { watchlist, symbolExists });
 
-  // Données de marché temps réel (optionnel : seulement si un hub est fourni).
-  if (options.marketHub) {
+  // Données de marché temps réel (optionnel : seulement si un registre est fourni).
+  if (options.marketRegistry) {
     void app.register(fastifyWebsocket);
-    void app.register(marketRoutes, { hub: options.marketHub });
+    void app.register(marketRoutes, { registry: options.marketRegistry });
   }
 
   return app;

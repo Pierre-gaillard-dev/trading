@@ -1,12 +1,11 @@
 import 'dotenv/config';
 import { buildApp } from './app';
-import { MarketHub } from './services/binance/market.gateway';
+import { MarketRegistry } from './services/binance/market.registry';
 
-// Une seule connexion à Binance, partagée par tous les clients du dashboard.
-const marketHub = new MarketHub({ symbol: 'BTCUSDT', interval: '1m' });
-void marketHub.start();
+// Un flux Binance par symbole demandé (créé à la demande, partagé entre clients).
+const marketRegistry = new MarketRegistry('1m');
 
-const app = buildApp({ marketHub });
+const app = buildApp({ marketRegistry });
 const port = Number(process.env.PORT ?? 3001);
 
 app.listen({ port, host: '0.0.0.0' }).catch((err: unknown) => {

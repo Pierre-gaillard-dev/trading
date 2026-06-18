@@ -1,7 +1,9 @@
 import type { Candle } from '@trading/shared';
 
-const REST_BASE = 'https://api.binance.com';
-const WS_BASE = 'wss://stream.binance.com:9443';
+// Domaine "public data" de Binance : mêmes endpoints market data, sans auth,
+// souvent accessible là où api.binance.com / stream.binance.com sont bloqués.
+const REST_BASE = 'https://data-api.binance.vision';
+const WS_BASE = 'wss://data-stream.binance.vision';
 
 /** Transforme une bougie brute Binance (tableau) en notre type Candle. */
 function toCandle(entry: unknown): Candle {
@@ -19,6 +21,17 @@ function toCandle(entry: unknown): Candle {
 /** URL REST des bougies (klines). */
 export function buildKlinesUrl(symbol: string, interval: string, limit: number): string {
   return `${REST_BASE}/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${String(limit)}`;
+}
+
+/** URL REST des infos d'un symbole (sert à vérifier qu'il existe). */
+export function buildExchangeInfoUrl(symbol: string): string {
+  return `${REST_BASE}/api/v3/exchangeInfo?symbol=${symbol.toUpperCase()}`;
+}
+
+/** Vrai si le symbole existe sur Binance (HTTP 200), faux sinon. */
+export async function symbolExists(symbol: string): Promise<boolean> {
+  const response = await fetch(buildExchangeInfoUrl(symbol));
+  return response.ok;
 }
 
 /** Récupère l'historique récent des bougies via l'API REST de Binance. */
