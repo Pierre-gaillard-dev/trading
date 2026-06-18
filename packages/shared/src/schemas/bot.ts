@@ -31,6 +31,7 @@ export const tradeSchema = z.object({
   id: z.string(),
   symbol: z.string(),
   side: z.enum(['BUY', 'SELL']),
+  strategyKey: z.string(),
   quantity: z.string(),
   price: z.string(),
   fee: z.string(),
