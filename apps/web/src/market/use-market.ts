@@ -16,20 +16,27 @@ function upsert(candles: Candle[], candle: Candle): Candle[] {
   return [...candles, candle];
 }
 
-/** Se connecte au flux /ws/market et expose prix + bougies en temps réel. */
-export function useMarket(): MarketState {
+/** Se connecte au flux /ws/market du symbole donné. Se reconnecte si `symbol` change. */
+export function useMarket(symbol: string): MarketState {
   const [price, setPrice] = useState<number | null>(null);
   const [candles, setCandles] = useState<Candle[]>([]);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
+    // On repart de zéro à chaque changement de symbole.
+    setPrice(null);
+    setCandles([]);
+    setConnected(false);
+
     let socket: WebSocket | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
     let closedByUs = false;
 
     const connect = () => {
       const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-      const ws = new WebSocket(`${protocol}://${window.location.host}/ws/market`);
+      const ws = new WebSocket(
+        `${protocol}://${window.location.host}/ws/market?symbol=${encodeURIComponent(symbol)}`,
+      );
       socket = ws;
 
       ws.onopen = () => {
@@ -47,6 +54,10 @@ export function useMarket(): MarketState {
           return;
         }
         const message = parsed.data;
+        // On ignore les messages d'un autre symbole (sécurité).
+        if (message.symbol !== symbol) {
+          return;
+        }
         if (message.type === 'snapshot') {
           setPrice(message.price);
           setCandles(message.candles);
@@ -67,7 +78,7 @@ export function useMarket(): MarketState {
       }
       socket?.close();
     };
-  }, []);
+  }, [symbol]);
 
   return { price, candles, connected };
 }
