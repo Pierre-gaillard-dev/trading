@@ -44,16 +44,22 @@ export {
   createPortfolioSchema,
   portfolioSchema,
   portfoliosResponseSchema,
+  positionSummarySchema,
+  portfolioSummarySchema,
   type CreatePortfolio,
   type PortfolioDto,
+  type PositionSummaryDto,
+  type PortfolioSummaryDto,
 } from './schemas/portfolio';
 export {
   createBotSchema,
   botSchema,
+  strategyWeightSchema,
   tradeSchema,
   positionSchema,
   type CreateBot,
   type BotDto,
+  type StrategyWeight,
   type TradeDto,
   type PositionDto,
 } from './schemas/bot';

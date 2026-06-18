@@ -1,7 +1,15 @@
 import { z } from 'zod';
 import { CANDLE_INTERVALS, type CandleInterval } from './market';
 
-/** Création d'un bot : portefeuille + crypto + intervalle + stratégie. */
+/** Une stratégie membre de l'ensemble, avec son poids (> 0). */
+export const strategyWeightSchema = z.object({
+  strategyKey: z.string().min(1),
+  weight: z.number().gt(0),
+  params: z.record(z.string(), z.unknown()).optional(),
+});
+export type StrategyWeight = z.infer<typeof strategyWeightSchema>;
+
+/** Création d'un bot : portefeuille + crypto + intervalle + stratégies pondérées. */
 export const createBotSchema = z.object({
   portfolioId: z.string().min(1),
   symbol: z.string().regex(/^[A-Za-z0-9]{2,16}USDT$/i, 'Symbole invalide'),
@@ -11,8 +19,8 @@ export const createBotSchema = z.object({
       (value): value is CandleInterval => (CANDLE_INTERVALS as readonly string[]).includes(value),
       'Intervalle invalide',
     ),
-  strategyKey: z.string().min(1),
-  params: z.record(z.string(), z.unknown()).optional(),
+  /** Au moins une stratégie ; chacune avec son poids. */
+  strategies: z.array(strategyWeightSchema).min(1, 'Au moins une stratégie'),
   /** Part du cash investie par achat (0–1). */
   buyFraction: z.number().gt(0).max(1).optional(),
 });
@@ -24,7 +32,7 @@ export const botSchema = z.object({
   portfolioId: z.string(),
   symbol: z.string(),
   interval: z.string(),
-  strategyKey: z.string(),
+  strategies: z.array(z.object({ strategyKey: z.string(), weight: z.number() })),
 });
 export type BotDto = z.infer<typeof botSchema>;
 
