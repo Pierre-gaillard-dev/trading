@@ -47,3 +47,13 @@ export {
   type CreatePortfolio,
   type PortfolioDto,
 } from './schemas/portfolio';
+export {
+  createBotSchema,
+  botSchema,
+  tradeSchema,
+  positionSchema,
+  type CreateBot,
+  type BotDto,
+  type TradeDto,
+  type PositionDto,
+} from './schemas/bot';
