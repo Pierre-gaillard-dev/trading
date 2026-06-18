@@ -28,3 +28,18 @@ model WatchedSymbol {
 
   @@unique([userId, symbol])
 }
+
+// Bougies de marché persistées (cache partagé : dashboard + workers/bots).
+// Données de marché brutes → Float convient (le décimal est réservé à l'argent).
+model Candle {
+  symbol   String
+  interval String
+  openTime Int // début de bougie, en secondes UNIX
+  open     Float
+  high     Float
+  low      Float
+  close    Float
+  volume   Float
+
+  @@id([symbol, interval, openTime])
+}

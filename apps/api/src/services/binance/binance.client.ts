@@ -56,7 +56,7 @@ export function buildStreamUrl(symbol: string, interval: string): string {
 
 export type BinanceEvent =
   | { kind: 'price'; price: number }
-  | { kind: 'candle'; candle: Candle }
+  | { kind: 'candle'; candle: Candle; closed: boolean }
   | null;
 
 /** Décode un message du flux combiné en évènement « prix » ou « bougie ». */
@@ -76,6 +76,7 @@ export function parseStreamMessage(raw: string): BinanceEvent {
     const k = payload.k as Record<string, unknown>;
     return {
       kind: 'candle',
+      closed: k.x === true, // k.x = la bougie est-elle clôturée ?
       candle: {
         time: Math.floor(Number(k.t) / 1000),
         open: Number(k.o),

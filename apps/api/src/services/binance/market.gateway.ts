@@ -1,11 +1,16 @@
 import { WebSocket } from 'ws';
 import type { Candle, MarketMessage } from '@trading/shared';
+import type { CandleRepository } from '../../repositories/candle.repository';
 import { buildStreamUrl, fetchRecentCandles, parseStreamMessage } from './binance.client';
+
+export type ClosedCandleListener = (candle: Candle) => void;
 
 export interface MarketHubOptions {
   symbol: string;
   interval: string;
   historyLimit?: number;
+  /** Si fourni, les bougies sont persistées (historique + clôtures). */
+  candleRepository?: CandleRepository;
 }
 
 /**
@@ -16,9 +21,11 @@ export interface MarketHubOptions {
  */
 export class MarketHub {
   private readonly clients = new Set<WebSocket>();
+  private readonly closedCandleListeners = new Set<ClosedCandleListener>();
   private readonly symbol: string;
   private readonly interval: string;
   private readonly historyLimit: number;
+  private readonly candleRepository: CandleRepository | undefined;
 
   private candles: Candle[] = [];
   private lastPrice: number | null = null;
@@ -30,6 +37,7 @@ export class MarketHub {
     this.symbol = options.symbol;
     this.interval = options.interval;
     this.historyLimit = options.historyLimit ?? 500;
+    this.candleRepository = options.candleRepository;
   }
 
   async start(): Promise<void> {
@@ -38,6 +46,12 @@ export class MarketHub {
       this.lastPrice = this.candles.at(-1)?.close ?? null;
       // Les clients déjà connectés (avant la fin du backfill) reçoivent l'historique.
       this.broadcastSnapshot();
+      // On persiste l'historique récupéré (cache pour le dashboard et les workers).
+      void this.candleRepository
+        ?.saveHistory(this.symbol, this.interval, this.candles)
+        .catch((error: unknown) => {
+          console.warn('[market] persistance historique :', (error as Error).message);
+        });
     } catch (error) {
       console.warn('[market] backfill REST échoué :', (error as Error).message);
     }
@@ -46,6 +60,19 @@ export class MarketHub {
 
   get clientCount(): number {
     return this.clients.size;
+  }
+
+  /** Vrai si plus aucun consommateur (ni dashboard, ni worker) → le hub peut être arrêté. */
+  isIdle(): boolean {
+    return this.clients.size === 0 && this.closedCandleListeners.size === 0;
+  }
+
+  /** Abonne un consommateur in-process (worker) aux bougies clôturées. */
+  onClosedCandle(listener: ClosedCandleListener): () => void {
+    this.closedCandleListeners.add(listener);
+    return () => {
+      this.closedCandleListeners.delete(listener);
+    };
   }
 
   stop(): void {
@@ -118,6 +145,19 @@ export class MarketHub {
     }
     this.upsertCandle(event.candle);
     this.broadcast({ type: 'candle', symbol: this.symbol, candle: event.candle });
+
+    // Une bougie CLÔTURÉE est définitive : on la persiste et on prévient les workers.
+    if (event.closed) {
+      const candle = event.candle;
+      void this.candleRepository
+        ?.saveClosedCandle(this.symbol, this.interval, candle)
+        .catch((error: unknown) => {
+          console.warn('[market] persistance bougie :', (error as Error).message);
+        });
+      for (const listener of this.closedCandleListeners) {
+        listener(candle);
+      }
+    }
   }
 
   private upsertCandle(candle: Candle): void {
