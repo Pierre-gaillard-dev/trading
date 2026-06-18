@@ -15,6 +15,7 @@ Ce dossier décrit chaque stratégie implémentée par les bots. **Chaque fiche 
 | `momentum_roc`      | [momentum-roc.md](./momentum-roc.md)                         | Momentum                         | Acheter quand le rendement sur N périodes passe au-dessus de 0 (ou d'un seuil). |
 | `donchian_breakout` | [donchian-breakout.md](./donchian-breakout.md)               | Cassure / suivi de tendance      | Acheter sur cassure du plus haut des N dernières périodes.                      |
 | `buy_and_hold`      | [buy-and-hold.md](./buy-and-hold.md)                         | Référence (benchmark)            | Acheter une fois, ne plus jamais vendre. Sert d'étalon.                         |
+| `candle_streak`     | [candle-streak.md](./candle-streak.md)                       | Retour à la moyenne (contrarien) | Acheter après N bougies rouges d'affilée, vendre après M bougies vertes.        |
 
 ## Contrat commun : l'interface `Strategy`
 

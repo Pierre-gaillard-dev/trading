@@ -44,7 +44,7 @@ packages/shared → DTO/types partagés api↔web (zod)
 2. **Tout le non-déterminisme passe par un port injecté** : temps (`Clock`), IDs (`IdGenerator`), données marché (`MarketDataFeed`), persistance (`*Repository`), aléa. Aucun `Date.now()`, `Math.random()`, `crypto.randomUUID()` ni accès réseau dans `core`.
 3. **Argent en décimal**, jamais `float`. Arrondis explicites et testés.
 4. **Invariants du moteur** : cash jamais négatif, BUY sans fonds → rejet, pas de vente à découvert (v1), `equity = cash + Σ(qty × prix)`.
-5. **Stratégies = fonctions pures** : `decide(context): Signal` (BUY/SELL/HOLD), déterministe. Contrat et fiches détaillées dans `docs/strategies/`. Clés disponibles : `ma_crossover`, `rsi`, `macd`, `bollinger_bands`, `momentum_roc`, `donchian_breakout`, `buy_and_hold` (benchmark).
+5. **Stratégies = fonctions pures** : `decide(context): Signal` (BUY/SELL/HOLD), déterministe. Contrat et fiches détaillées dans `docs/strategies/`. Clés disponibles : `ma_crossover`, `rsi`, `macd`, `bollinger_bands`, `momentum_roc`, `donchian_breakout`, `buy_and_hold` (benchmark), `candle_streak`.
 6. Une **instance `TradingBot` par portefeuille** (POO), isolée des autres.
 
 ## Tests (le but du cours)
