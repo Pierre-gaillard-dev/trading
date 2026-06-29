@@ -41,6 +41,7 @@ Téléchargées via `tsx research/fetch.ts` (API REST publique Binance). 3 actif
 5. **[05-consensus.md](./05-consensus.md)** — combineur déterministe par consensus (prototype).
 6. **[05b-regime-filter.md](./05b-regime-filter.md)** — filtre de régime (SMA longue) → **meilleure piste**, implémentée en `core` (`trend_filter`).
 7. **[06-synthese.md](./06-synthese.md)** — meilleures configs retenues, conclusions, limites.
+8. **[07-court-terme.md](./07-court-terme.md)** — recherche de profit en 15m/1h (SL/TP, sous-fenêtres bull/bear). Conclusion : pas de profit court terme fiable sur cet échantillon (marché baissier) ; le RSI+stop-loss est seulement *défensif*.
 
 > Vérif end-to-end : `experiments/07-verify-trend-filter.ts` confirme que la stratégie
 > `trend_filter` de `core` reproduit exactement le prototype de la campagne 5b.

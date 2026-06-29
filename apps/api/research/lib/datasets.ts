@@ -32,6 +32,20 @@ export const DATASETS: readonly Dataset[] = [
   { symbol: 'SOLUSDT', interval: '1d', count: 1500 },
 ];
 
+/**
+ * Jeux court terme ÉTENDUS (régimes variés) pour la recherche de profit en 15m/1h :
+ *  - 1h  × 10000 ≈ 14 mois (englobe hausses ET baisses)
+ *  - 15m × 10000 ≈ 104 jours
+ */
+export const SHORT_TERM_DATASETS: readonly Dataset[] = [
+  { symbol: 'BTCUSDT', interval: '1h', count: 10000 },
+  { symbol: 'ETHUSDT', interval: '1h', count: 10000 },
+  { symbol: 'SOLUSDT', interval: '1h', count: 10000 },
+  { symbol: 'BTCUSDT', interval: '15m', count: 10000 },
+  { symbol: 'ETHUSDT', interval: '15m', count: 10000 },
+  { symbol: 'SOLUSDT', interval: '15m', count: 10000 },
+];
+
 /** Nombre de périodes par an, pour annualiser le Sharpe selon l'intervalle. */
 export const PERIODS_PER_YEAR: Record<string, number> = {
   '15m': 4 * 24 * 365,

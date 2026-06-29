@@ -1,4 +1,4 @@
-import { DATASETS, fetchAndCache, isCached, datasetLabel } from './lib/datasets';
+import { DATASETS, SHORT_TERM_DATASETS, fetchAndCache, isCached, datasetLabel } from './lib/datasets';
 
 /**
  * Télécharge tous les jeux de données de `DATASETS` dans le cache local
@@ -7,7 +7,8 @@ import { DATASETS, fetchAndCache, isCached, datasetLabel } from './lib/datasets'
  */
 async function main(): Promise<void> {
   const force = process.argv.includes('--force');
-  for (const ds of DATASETS) {
+  const all = [...DATASETS, ...SHORT_TERM_DATASETS];
+  for (const ds of all) {
     const label = datasetLabel(ds);
     if (!force && isCached(ds)) {
       console.log(`✓ ${label} (déjà en cache)`);

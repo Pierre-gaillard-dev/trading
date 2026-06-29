@@ -5,8 +5,9 @@ import {
   SeededRandom,
   type EnsembleEntry,
   type Strategy,
+  type RiskParams,
 } from '@trading/core';
-import type { BacktestResult } from '@trading/core';
+import type { BacktestResult, Candle as CoreCandle } from '@trading/core';
 import { defaultSymbolSpec } from '../../src/services/symbol-spec';
 import {
   loadCore,
@@ -25,6 +26,8 @@ export interface Config {
   readonly entries: EnsembleEntry[];
   /** Part du cash investie par achat (défaut 0,95 pour exploiter au mieux le capital). */
   readonly buyFraction?: number;
+  /** Gestion du risque par trade (stop-loss / take-profit), optionnelle. */
+  readonly risk?: RiskParams;
 }
 
 /** Métriques d'un backtest, agrégées sur les seeds testés. */
@@ -78,9 +81,23 @@ const mean = (values: number[]): number =>
  * robustesse ; une stratégie unique est déterministe (un seul seed suffit).
  */
 export function runConfig(config: Config, ds: Dataset, seeds: number[] = [1]): ResultRow {
-  const candles = loadCore(ds);
-  const spec = defaultSymbolSpec(ds.symbol);
-  const periodsPerYear = PERIODS_PER_YEAR[ds.interval] ?? 365;
+  return runConfigOn(config, loadCore(ds), datasetLabel(ds), ds.interval, ds.symbol, seeds);
+}
+
+/**
+ * Variante : exécute une config sur des bougies fournies (ex. une sous-fenêtre),
+ * avec un libellé et un intervalle explicites. Même logique multi-seed.
+ */
+export function runConfigOn(
+  config: Config,
+  candles: CoreCandle[],
+  label: string,
+  interval: string,
+  symbol: string,
+  seeds: number[] = [1],
+): ResultRow {
+  const spec = defaultSymbolSpec(symbol);
+  const periodsPerYear = PERIODS_PER_YEAR[interval] ?? 365;
   const isSingle = config.entries.length === 1;
   const usedSeeds = isSingle ? [seeds[0] ?? 1] : seeds;
 
@@ -95,7 +112,7 @@ export function runConfig(config: Config, ds: Dataset, seeds: number[] = [1]): R
 
   for (const seed of usedSeeds) {
     const result = runBacktest({
-      symbol: ds.symbol,
+      symbol,
       spec,
       candles,
       strategy: createEnsemble(config.entries, new SeededRandom(seed)),
@@ -103,6 +120,7 @@ export function runConfig(config: Config, ds: Dataset, seeds: number[] = [1]): R
       initialCash: INITIAL_CASH,
       feeRate: FEE_RATE,
       slippageBps: SLIPPAGE_BPS,
+      risk: config.risk,
     });
     const pnlPct = Number(result.pnlPct);
     buyHold = Number(result.buyHoldPnlPct);
@@ -117,7 +135,7 @@ export function runConfig(config: Config, ds: Dataset, seeds: number[] = [1]): R
 
   return {
     name: config.name,
-    dataset: datasetLabel(ds),
+    dataset: label,
     pnlPct: mean(pnls),
     alphaPct: mean(alphas),
     buyHoldPct: buyHold,
