@@ -1,7 +1,31 @@
 # Audit des tests — état des lieux & trous à combler
 
-> Mesuré le 2026-06-29 via `pnpm coverage`. Couverture **globale ~40 %**
-> (statements 40,1 %, branches 33,4 %, fonctions 38,8 %).
+> Mesuré le 2026-06-29 via `pnpm coverage`. Couverture initiale **globale ~40 %**.
+
+## ✅ Mise à jour — tout le back unitaire/contrat a été traité
+
+Après la campagne de tests back (commits `test(core)` / `test(api)`) :
+
+| Zone | Avant | Après |
+|---|--:|--:|
+| **packages/core** | ~35 % | **97,7 %** (tous fichiers ≥ 90 %, cible atteinte ✅) |
+| packages/shared | ~95 % | **100 %** |
+| apps/api | élevé sauf trous | **63,7 %** (reste : Prisma + WS marché) |
+| **Global** | ~40 % | **82,4 %** · 368 tests |
+
+**Fait** : value objects (Money/Price/Quantity), ExecutionEngine, Portfolio, TradingBot,
+Backtester, les 6 indicateurs, les 9 stratégies, sizing, SeededRandom, registre, +
+côté API : backtest (contrat + invert + erreurs), `requireWsAuth`, SystemRandom.
+
+**Reste (palier intégration — nécessite une infra dédiée, cf. §4 & §7)** :
+- Repos **Prisma** sur Postgres jetable (ne pas taper sur la base de dev).
+- **WebSocket marché** (`market.registry/gateway/routes`) : faux serveur WS ou refactor
+  pour injecter le hub (évite le réseau en test).
+- **Front** (`apps/web`) : Playwright + tests de composants — hors périmètre « back ».
+
+Le reste de ce document est l'audit initial (conservé comme référence).
+
+---
 
 ## TL;DR — le constat central
 
