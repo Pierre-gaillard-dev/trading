@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import type { Candle } from '../../domain/candle';
 import type { StrategyContext } from './strategy';
 import { BollingerBandsStrategy } from './bollinger-bands.strategy';
 

@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { Money } from '../../domain/money';
 import { Price } from '../../domain/price';
 import { Quantity } from '../../domain/quantity';
 import type { SymbolSpec } from '../../domain/symbol-spec';
