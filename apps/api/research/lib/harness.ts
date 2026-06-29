@@ -28,6 +28,8 @@ export interface Config {
   readonly buyFraction?: number;
   /** Gestion du risque par trade (stop-loss / take-profit), optionnelle. */
   readonly risk?: RiskParams;
+  /** Inverse la décision finale de l'ensemble (achat ↔ vente). Défaut false. */
+  readonly invert?: boolean;
 }
 
 /** Métriques d'un backtest, agrégées sur les seeds testés. */
@@ -115,7 +117,7 @@ export function runConfigOn(
       symbol,
       spec,
       candles,
-      strategy: createEnsemble(config.entries, new SeededRandom(seed)),
+      strategy: createEnsemble(config.entries, new SeededRandom(seed), config.invert),
       sizing: new FixedFractionSizing(config.buyFraction ?? 0.95),
       initialCash: INITIAL_CASH,
       feeRate: FEE_RATE,

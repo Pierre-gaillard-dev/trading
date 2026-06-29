@@ -42,6 +42,7 @@ Téléchargées via `tsx research/fetch.ts` (API REST publique Binance). 3 actif
 6. **[05b-regime-filter.md](./05b-regime-filter.md)** — filtre de régime (SMA longue) → **meilleure piste**, implémentée en `core` (`trend_filter`).
 7. **[06-synthese.md](./06-synthese.md)** — meilleures configs retenues, conclusions, limites.
 8. **[07-court-terme.md](./07-court-terme.md)** — recherche de profit en 15m/1h (SL/TP, sous-fenêtres bull/bear). Conclusion : pas de profit court terme fiable sur cet échantillon (marché baissier) ; le RSI+stop-loss est seulement *défensif*.
+9. **[08-invert-ensemble.md](./08-invert-ensemble.md)** — option `invert` au niveau de l'ensemble (inverse la décision finale du bot). N'aide que si l'ensemble est systématiquement perdant : `inverse[rsi]` −28 % → +42 %, mais inverser un ensemble gagnant le casse.
 
 > Vérif end-to-end : `experiments/07-verify-trend-filter.ts` confirme que la stratégie
 > `trend_filter` de `core` reproduit exactement le prototype de la campagne 5b.
