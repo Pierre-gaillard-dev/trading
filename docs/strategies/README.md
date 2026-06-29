@@ -16,6 +16,7 @@ Ce dossier décrit chaque stratégie implémentée par les bots. **Chaque fiche 
 | `donchian_breakout` | [donchian-breakout.md](./donchian-breakout.md)               | Cassure / suivi de tendance      | Acheter sur cassure du plus haut des N dernières périodes.                      |
 | `buy_and_hold`      | [buy-and-hold.md](./buy-and-hold.md)                         | Référence (benchmark)            | Acheter une fois, ne plus jamais vendre. Sert d'étalon.                         |
 | `candle_streak`     | [candle-streak.md](./candle-streak.md)                       | Retour à la moyenne (contrarien) | Acheter après N bougies rouges d'affilée, vendre après M bougies vertes.        |
+| `trend_filter`      | [trend-filter.md](./trend-filter.md)                         | Suivi de tendance + filtre de régime | Croisement de moyennes, mais n'acheter que si le prix est au-dessus d'une SMA longue. |
 
 ## Contrat commun : l'interface `Strategy`
 

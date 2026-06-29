@@ -9,13 +9,10 @@ import { MomentumRocStrategy, type MomentumRocParams } from './momentum-roc.stra
 import { DonchianBreakoutStrategy, type DonchianParams } from './donchian-breakout.strategy';
 import { BuyAndHoldStrategy } from './buy-and-hold.strategy';
 import { CandleStreakStrategy, type CandleStreakParams } from './candle-streak.strategy';
+import { TrendFilterStrategy, type TrendFilterParams } from './trend-filter.strategy';
 
 export type { Signal, Strategy, StrategyContext } from './strategy';
-export {
-  EnsembleStrategy,
-  type WeightedStrategy,
-  type EnsembleConfig,
-} from './ensemble.strategy';
+export { EnsembleStrategy, type WeightedStrategy, type EnsembleConfig } from './ensemble.strategy';
 export { MaCrossoverStrategy, type MaCrossoverParams, type MaType } from './ma-crossover.strategy';
 export { RsiStrategy, type RsiParams } from './rsi.strategy';
 export { MacdStrategy, type MacdParams } from './macd.strategy';
@@ -28,6 +25,7 @@ export { MomentumRocStrategy, type MomentumRocParams } from './momentum-roc.stra
 export { DonchianBreakoutStrategy, type DonchianParams } from './donchian-breakout.strategy';
 export { BuyAndHoldStrategy } from './buy-and-hold.strategy';
 export { CandleStreakStrategy, type CandleStreakParams } from './candle-streak.strategy';
+export { TrendFilterStrategy, type TrendFilterParams } from './trend-filter.strategy';
 
 /** Clés stables des stratégies disponibles. */
 export type StrategyKey =
@@ -38,7 +36,8 @@ export type StrategyKey =
   | 'momentum_roc'
   | 'donchian_breakout'
   | 'buy_and_hold'
-  | 'candle_streak';
+  | 'candle_streak'
+  | 'trend_filter';
 
 export const STRATEGY_KEYS: readonly StrategyKey[] = [
   'ma_crossover',
@@ -49,6 +48,7 @@ export const STRATEGY_KEYS: readonly StrategyKey[] = [
   'donchian_breakout',
   'buy_and_hold',
   'candle_streak',
+  'trend_filter',
 ];
 
 /**
@@ -73,6 +73,8 @@ export function createStrategy(key: StrategyKey, params: unknown = {}): Strategy
       return new BuyAndHoldStrategy();
     case 'candle_streak':
       return new CandleStreakStrategy(params as CandleStreakParams);
+    case 'trend_filter':
+      return new TrendFilterStrategy(params as TrendFilterParams);
   }
 }
 
