@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import type { Candle } from '@trading/shared';
+import { SeededRandom } from '@trading/core';
 import { buildApp } from '../app';
 import { BotManager } from '../workers/bot-manager';
 import { WorkerManager } from '../workers/worker-manager';
@@ -17,7 +18,8 @@ const noopFeed: CandleFeed = {
 
 /**
  * Routes /api/bots. On vérifie surtout la VALIDATION en deux temps du controller :
- * 1) le schéma zod (corps bien formé) ; 2) la stratégie doit exister (STRATEGY_KEYS).
+ * 1) le schéma zod (corps bien formé : ensemble pondéré `strategies`) ;
+ * 2) chaque stratégie de l'ensemble doit exister (STRATEGY_KEYS).
  * Plus la propriété (un user ne peut pas arrêter le bot d'un autre).
  */
 describe('routes bots', () => {
@@ -31,7 +33,12 @@ describe('routes bots', () => {
   beforeEach(async () => {
     portfolios = new InMemoryPortfolioRepository();
     const workers = new WorkerManager(noopFeed, new InMemoryCandleRepository());
-    const botManager = new BotManager(workers, portfolios, new InMemoryBotConfigRepository());
+    const botManager = new BotManager(
+      workers,
+      portfolios,
+      new InMemoryBotConfigRepository(),
+      new SeededRandom(1),
+    );
 
     app = buildApp({
       portfolioRepository: portfolios,
@@ -56,7 +63,7 @@ describe('routes bots', () => {
     portfolioId,
     symbol: 'BTCUSDT',
     interval: '1m',
-    strategyKey: 'ma_crossover',
+    strategies: [{ strategyKey: 'ma_crossover', weight: 1 }],
     ...over,
   });
 
@@ -70,7 +77,11 @@ describe('routes bots', () => {
       });
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body);
-      expect(body).toMatchObject({ symbol: 'BTCUSDT', interval: '1m', strategyKey: 'ma_crossover' });
+      expect(body).toMatchObject({
+        symbol: 'BTCUSDT',
+        interval: '1m',
+        strategies: [{ strategyKey: 'ma_crossover', weight: 1 }],
+      });
       expect(body.id).toBeTruthy();
     });
 
@@ -99,7 +110,7 @@ describe('routes bots', () => {
         method: 'POST',
         url: '/api/bots',
         headers: auth(),
-        payload: createBody({ strategyKey: 'stratégie_bidon' }),
+        payload: createBody({ strategies: [{ strategyKey: 'stratégie_bidon', weight: 1 }] }),
       });
       expect(response.statusCode).toBe(400);
       expect(JSON.parse(response.body).error).toContain('stratégie_bidon');
@@ -123,7 +134,11 @@ describe('routes bots', () => {
     });
 
     it('exige une authentification', async () => {
-      const response = await app.inject({ method: 'POST', url: '/api/bots', payload: createBody() });
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/bots',
+        payload: createBody(),
+      });
       expect(response.statusCode).toBe(401);
     });
   });
@@ -146,7 +161,12 @@ describe('routes bots', () => {
 
   describe('GET /api/bots', () => {
     it('liste uniquement les bots de l’utilisateur courant', async () => {
-      await app.inject({ method: 'POST', url: '/api/bots', headers: auth(), payload: createBody() });
+      await app.inject({
+        method: 'POST',
+        url: '/api/bots',
+        headers: auth(),
+        payload: createBody(),
+      });
 
       const response = await app.inject({ method: 'GET', url: '/api/bots', headers: auth() });
       expect(response.statusCode).toBe(200);

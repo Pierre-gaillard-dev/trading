@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Candle } from '@trading/shared';
+import { SeededRandom } from '@trading/core';
 import { BotManager } from './bot-manager';
 import { WorkerManager } from './worker-manager';
 import type { CandleFeed } from '../services/binance/market.registry';
@@ -30,7 +31,7 @@ describe('BotManager', () => {
     portfolios = new InMemoryPortfolioRepository();
     configs = new InMemoryBotConfigRepository();
     workers = new WorkerManager(noopFeed, new InMemoryCandleRepository());
-    manager = new BotManager(workers, portfolios, configs);
+    manager = new BotManager(workers, portfolios, configs, new SeededRandom(1));
   });
 
   /** Crée un portefeuille pour USER et renvoie son id. */
@@ -48,8 +49,7 @@ describe('BotManager', () => {
     userId: USER,
     symbol: 'BTCUSDT',
     interval: '1m',
-    strategyKey: 'ma_crossover',
-    params: {},
+    strategies: [{ strategyKey: 'ma_crossover', weight: 1, params: {} }],
     buyFraction: 0.1,
     ...over,
   });
@@ -64,7 +64,7 @@ describe('BotManager', () => {
         portfolioId,
         symbol: 'BTCUSDT',
         interval: '1m',
-        strategyKey: 'ma_crossover',
+        strategies: [{ strategyKey: 'ma_crossover', weight: 1 }],
       });
 
       expect(bot).toMatchObject({ portfolioId, symbol: 'BTCUSDT', interval: '1m' });
@@ -81,7 +81,7 @@ describe('BotManager', () => {
           portfolioId: 'pf_inconnu',
           symbol: 'BTCUSDT',
           interval: '1m',
-          strategyKey: 'ma_crossover',
+          strategies: [{ strategyKey: 'ma_crossover', weight: 1 }],
         }),
       ).rejects.toThrow('Portefeuille introuvable');
       expect(await configs.listAll()).toHaveLength(0);
@@ -94,7 +94,7 @@ describe('BotManager', () => {
         portfolioId,
         symbol: 'BTCUSDT',
         interval: '1m',
-        strategyKey: 'ma_crossover',
+        strategies: [{ strategyKey: 'ma_crossover', weight: 1 }],
       });
       const [persisted] = await configs.listAll();
       expect(persisted.buyFraction).toBe(0.1); // DEFAULT_BUY_FRACTION
@@ -146,9 +146,14 @@ describe('BotManager', () => {
       vi.spyOn(console, 'warn').mockImplementation(() => {});
       const portfolioId = await aPortfolio();
       // params invalides → createStrategy lève (RSI exige period > 1) → ce bot est ignoré.
-      await configs.create(config({ portfolioId, strategyKey: 'rsi', params: { period: 0 } }));
+      await configs.create(
+        config({
+          portfolioId,
+          strategies: [{ strategyKey: 'rsi', weight: 1, params: { period: 0 } }],
+        }),
+      );
       // un bot sain qui doit, lui, démarrer malgré l'échec du précédent.
-      await configs.create(config({ portfolioId, strategyKey: 'ma_crossover' }));
+      await configs.create(config({ portfolioId }));
 
       await manager.restore();
 
@@ -176,7 +181,7 @@ describe('BotManager', () => {
         portfolioId,
         symbol: 'BTCUSDT',
         interval: '1m',
-        strategyKey: 'ma_crossover',
+        strategies: [{ strategyKey: 'ma_crossover', weight: 1 }],
       });
 
       const result = await manager.stop(USER, bot.id);
@@ -198,7 +203,7 @@ describe('BotManager', () => {
         portfolioId,
         symbol: 'BTCUSDT',
         interval: '1m',
-        strategyKey: 'ma_crossover',
+        strategies: [{ strategyKey: 'ma_crossover', weight: 1 }],
       });
 
       const result = await manager.stop('autre_user', bot.id);

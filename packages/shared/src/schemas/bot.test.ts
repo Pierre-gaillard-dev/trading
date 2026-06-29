@@ -13,7 +13,7 @@ describe('createBotSchema', () => {
     portfolioId: 'pf_1',
     symbol: 'BTCUSDT',
     interval: '1m',
-    strategyKey: 'ma_crossover',
+    strategies: [{ strategyKey: 'ma_crossover', weight: 1 }],
   };
 
   describe('cas nominal', () => {
@@ -21,8 +21,11 @@ describe('createBotSchema', () => {
       expect(createBotSchema.safeParse(valid).success).toBe(true);
     });
 
-    it('accepte des params optionnels', () => {
-      const result = createBotSchema.safeParse({ ...valid, params: { fast: 9, slow: 21 } });
+    it('accepte des params optionnels (par stratégie)', () => {
+      const result = createBotSchema.safeParse({
+        ...valid,
+        strategies: [{ strategyKey: 'ma_crossover', weight: 1, params: { fast: 9, slow: 21 } }],
+      });
       expect(result.success).toBe(true);
     });
   });
@@ -79,17 +82,36 @@ describe('createBotSchema', () => {
     });
   });
 
-  describe('strategyKey', () => {
-    it('rejette une stratégie vide', () => {
-      expect(createBotSchema.safeParse({ ...valid, strategyKey: '' }).success).toBe(false);
+  describe('strategies', () => {
+    it('rejette une liste de stratégies vide', () => {
+      expect(createBotSchema.safeParse({ ...valid, strategies: [] }).success).toBe(false);
+    });
+
+    it('rejette une clé de stratégie vide', () => {
+      expect(
+        createBotSchema.safeParse({ ...valid, strategies: [{ strategyKey: '', weight: 1 }] })
+          .success,
+      ).toBe(false);
+    });
+
+    it('rejette un poids nul ou négatif', () => {
+      expect(
+        createBotSchema.safeParse({
+          ...valid,
+          strategies: [{ strategyKey: 'ma_crossover', weight: 0 }],
+        }).success,
+      ).toBe(false);
     });
 
     // À SIGNALER : le schéma laisse passer n'importe quelle clé non vide ;
     // c'est le controller qui rejette les stratégies inconnues (cf. bot.test des routes).
     it('accepte (au niveau schéma) une clé inconnue non vide', () => {
-      expect(createBotSchema.safeParse({ ...valid, strategyKey: 'stratégie_bidon' }).success).toBe(
-        true,
-      );
+      expect(
+        createBotSchema.safeParse({
+          ...valid,
+          strategies: [{ strategyKey: 'stratégie_bidon', weight: 1 }],
+        }).success,
+      ).toBe(true);
     });
   });
 
@@ -179,7 +201,7 @@ describe('botSchema', () => {
       portfolioId: 'pf_1',
       symbol: 'BTCUSDT',
       interval: '1m',
-      strategyKey: 'macd',
+      strategies: [{ strategyKey: 'macd', weight: 1 }],
     });
     expect(result.success).toBe(true);
   });
