@@ -268,6 +268,16 @@ Fonctionnalité: Bots de trading
     Étant donné plusieurs bots sur des portefeuilles différents
     Quand ils tournent en même temps
     Alors chacun gère son portefeuille de façon isolée
+
+  Scénario: Inverser la décision de l'ensemble
+    Quand je crée un bot en cochant « Inverser »
+    Alors le bot vend quand l'ensemble des stratégies pencherait pour acheter (et inversement)
+    Et le bot affiche un badge « inversé » dans la liste
+
+  Scénario: Backtester en mode inversé
+    Étant donné le formulaire de backtest
+    Quand je coche « Inverser » et lance le backtest
+    Alors le résultat correspond à la décision inverse de l'ensemble sur la période
 ```
 
 ---

@@ -28,6 +28,7 @@ export function Backtest() {
   const [initialCash, setInitialCash] = useState('10000');
   const [buyPct, setBuyPct] = useState('10');
   const [candles, setCandles] = useState('500');
+  const [invert, setInvert] = useState(false);
   const picker = useStrategyPicks();
 
   const [result, setResult] = useState<BacktestResultDto | null>(null);
@@ -69,6 +70,7 @@ export function Backtest() {
         strategies: chosen,
         initialCash: initialCash.trim(),
         buyFraction,
+        invert,
         candles: Number.isFinite(count) ? Math.min(Math.max(count, 50), 10000) : 500,
       });
       setResult(res);
@@ -80,8 +82,7 @@ export function Backtest() {
     }
   }
 
-  const beatsBuyHold =
-    result !== null && Number(result.pnlPct) > Number(result.buyHoldPnlPct);
+  const beatsBuyHold = result !== null && Number(result.pnlPct) > Number(result.buyHoldPnlPct);
 
   return (
     <section className='rounded-xl bg-white p-6 shadow'>
@@ -149,6 +150,20 @@ export function Backtest() {
               className='w-20 rounded-md border border-slate-300 px-2 py-2 text-sm outline-none focus:border-slate-500'
             />
           </label>
+          <label
+            className='flex items-center gap-1 text-sm text-slate-600'
+            title='Inverse la décision finale de l’ensemble : quand les stratégies pencheraient pour acheter, on vend (et inversement).'
+          >
+            <input
+              type='checkbox'
+              checked={invert}
+              onChange={(event) => {
+                setInvert(event.target.checked);
+              }}
+              className='rounded border-slate-300'
+            />
+            Inverser
+          </label>
         </div>
 
         <StrategyPicker
@@ -178,7 +193,11 @@ export function Backtest() {
               className={pnlClass(result.pnl)}
             />
             <Stat label='Équité finale' value={result.finalEquity} />
-            <Stat label='Pire chute (drawdown)' value={`-${result.maxDrawdownPct} %`} className='text-slate-900' />
+            <Stat
+              label='Pire chute (drawdown)'
+              value={`-${result.maxDrawdownPct} %`}
+              className='text-slate-900'
+            />
             <Stat
               label='vs Acheter & garder'
               value={`${signed(result.buyHoldPnlPct)} %`}

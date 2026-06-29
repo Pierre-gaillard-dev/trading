@@ -9,6 +9,7 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [interval, setInterval] = useState<string>('1m');
   const [buyPct, setBuyPct] = useState('10');
+  const [invert, setInvert] = useState(false);
   const picker = useStrategyPicks();
 
   const effectivePortfolio = portfolioId || portfolios[0]?.id || '';
@@ -27,6 +28,7 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
       interval,
       strategies: chosen,
       buyFraction,
+      invert,
     });
     picker.reset();
   }
@@ -87,6 +89,20 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
               />
               % / achat
             </label>
+            <label
+              className='flex items-center gap-1 text-sm text-slate-600'
+              title='Inverse la décision finale de l’ensemble : quand les stratégies pencheraient pour acheter, le bot vend (et inversement).'
+            >
+              <input
+                type='checkbox'
+                checked={invert}
+                onChange={(event) => {
+                  setInvert(event.target.checked);
+                }}
+                className='rounded border-slate-300'
+              />
+              Inverser
+            </label>
           </div>
 
           <StrategyPicker
@@ -116,6 +132,11 @@ export function Bots({ portfolios }: { portfolios: PortfolioDto[] }) {
               <span className='text-slate-800'>
                 <span className='font-medium'>{bot.symbol}</span> · {bot.interval} ·{' '}
                 {bot.strategies.map((s) => `${s.strategyKey}×${String(s.weight)}`).join(', ')}
+                {bot.invert === true && (
+                  <span className='ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700'>
+                    inversé
+                  </span>
+                )}
                 <span className='ml-2 text-slate-500'>({portfolioName(bot.portfolioId)})</span>
               </span>
               <button

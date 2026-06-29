@@ -174,6 +174,8 @@ export interface CreateBotInput {
   /** Stratégies pondérées qui composent le bot (au moins une). */
   strategies: { strategyKey: string; weight: number }[];
   buyFraction: number;
+  /** Inverse la décision finale de l'ensemble (achat ↔ vente). */
+  invert?: boolean;
 }
 
 /** Démarre un bot. */
