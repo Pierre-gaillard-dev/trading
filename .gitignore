@@ -32,3 +32,6 @@ pnpm-debug.log*
 
 # Prisma (généré, ajouté au Lot 4)
 **/generated/
+
+# Recherche / optimisation (cache de données marché, volumineux)
+apps/api/research/data/
