@@ -16,6 +16,8 @@ export const runBacktestSchema = z.object({
   strategies: z.array(strategyWeightSchema).min(1, 'Au moins une stratégie'),
   initialCash: decimalString.refine((value) => Number(value) > 0, 'Le capital doit être > 0'),
   buyFraction: z.number().gt(0).max(1).optional(),
+  /** Inverse la décision finale de l'ensemble (achat ↔ vente). Défaut false. */
+  invert: z.boolean().optional(),
   feeRate: decimalString.optional(),
   slippageBps: z.number().int().min(0).optional(),
   /** Nombre de bougies historiques à rejouer (max 10000, défaut 500). */

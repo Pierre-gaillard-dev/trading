@@ -81,14 +81,16 @@ Réponse :
   "portfolioId": "pf_123",
   "symbol": "BTCUSDT",
   "interval": "1m",
-  "strategyKey": "rsi",
-  "params": { "period": 14, "oversold": 30, "overbought": 70 },
-  "sizing": { "type": "fixed_fraction", "fraction": 0.95 },
-  "risk": { "stopLossPct": "0.05", "takeProfitPct": "0.10" }
+  "strategies": [
+    { "strategyKey": "rsi", "weight": 1, "params": { "period": 14 } },
+    { "strategyKey": "ma_crossover", "weight": 2 }
+  ],
+  "buyFraction": 0.95,
+  "invert": false
 }
 ```
 
-`risk.stopLossPct` / `takeProfitPct` peuvent être `null`. Validation : `symbol` connu, `strategyKey` connu, `params` conformes au schéma de la stratégie, `0 < fraction ≤ 1`.
+`strategies` est un **ensemble pondéré** (au moins une entrée ; `weight > 0`). `invert` (optionnel, défaut `false`) **inverse la décision finale de l'ensemble** : quand les stratégies sélectionnées pencheraient pour acheter, le bot vend, et inversement (HOLD inchangé). Le même champ `invert` est accepté par `POST /api/backtest`. Validation : `symbol` connu, chaque `strategyKey` connu, `params` conformes au schéma de chaque stratégie, `0 < buyFraction ≤ 1`.
 
 ## 3. Protocole WebSocket
 

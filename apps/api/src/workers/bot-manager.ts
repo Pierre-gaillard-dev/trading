@@ -31,6 +31,8 @@ export interface CreateBotInput {
   strategies: BotStrategyConfig[];
   /** Part du cash investie à chaque achat (0–1). Défaut 0,10. */
   buyFraction?: number;
+  /** Inverse la décision finale de l'ensemble (achat ↔ vente). Défaut false. */
+  invert?: boolean;
   risk?: RiskParams;
 }
 
@@ -42,6 +44,7 @@ export interface RunningBot {
   symbol: string;
   interval: string;
   strategies: { strategyKey: string; weight: number }[];
+  invert: boolean;
 }
 
 /** Démarre/arrête les bots, les persiste, et les relance au démarrage du serveur. */
@@ -67,6 +70,7 @@ export class BotManager {
       interval: input.interval,
       strategies: input.strategies,
       buyFraction: input.buyFraction ?? DEFAULT_BUY_FRACTION,
+      invert: input.invert ?? false,
     });
     const running = await this.run(config);
     if (running === null) {
@@ -117,6 +121,7 @@ export class BotManager {
           symbol: bot.symbol,
           interval: bot.interval,
           strategies: bot.strategies,
+          invert: bot.invert,
         });
       }
     }
@@ -154,7 +159,7 @@ export class BotManager {
     const bot = new TradingBot({
       symbol: config.symbol,
       spec: defaultSymbolSpec(config.symbol),
-      strategy: createEnsemble(entries, this.random),
+      strategy: createEnsemble(entries, this.random, config.invert),
       sizing: new FixedFractionSizing(config.buyFraction),
       portfolio,
     });
@@ -181,6 +186,7 @@ export class BotManager {
       symbol: config.symbol,
       interval: config.interval,
       strategies,
+      invert: config.invert,
     };
     this.bots.set(config.id, { ...running, userId: config.userId });
     return running;

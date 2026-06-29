@@ -51,6 +51,7 @@ describe('BotManager', () => {
     interval: '1m',
     strategies: [{ strategyKey: 'ma_crossover', weight: 1, params: {} }],
     buyFraction: 0.1,
+    invert: false,
     ...over,
   });
 
@@ -98,6 +99,33 @@ describe('BotManager', () => {
       });
       const [persisted] = await configs.listAll();
       expect(persisted.buyFraction).toBe(0.1); // DEFAULT_BUY_FRACTION
+    });
+
+    it('persiste et expose le flag invert (inversion de l’ensemble)', async () => {
+      const portfolioId = await aPortfolio();
+      const bot = await manager.start({
+        userId: USER,
+        portfolioId,
+        symbol: 'BTCUSDT',
+        interval: '1m',
+        strategies: [{ strategyKey: 'ma_crossover', weight: 1 }],
+        invert: true,
+      });
+      expect(bot.invert).toBe(true);
+      const [persisted] = await configs.listAll();
+      expect(persisted.invert).toBe(true);
+    });
+
+    it('invert vaut false par défaut quand il est absent', async () => {
+      const portfolioId = await aPortfolio();
+      const bot = await manager.start({
+        userId: USER,
+        portfolioId,
+        symbol: 'BTCUSDT',
+        interval: '1m',
+        strategies: [{ strategyKey: 'ma_crossover', weight: 1 }],
+      });
+      expect(bot.invert).toBe(false);
     });
   });
 

@@ -13,6 +13,8 @@ export interface BotConfigRecord {
   interval: string;
   strategies: BotStrategyConfig[];
   buyFraction: number;
+  /** Inverse la décision finale de l'ensemble (achat ↔ vente). */
+  invert: boolean;
 }
 
 export interface NewBotConfig {
@@ -22,6 +24,7 @@ export interface NewBotConfig {
   interval: string;
   strategies: BotStrategyConfig[];
   buyFraction: number;
+  invert: boolean;
 }
 
 /** Persistance des bots, pour les relancer au démarrage du serveur (port). */

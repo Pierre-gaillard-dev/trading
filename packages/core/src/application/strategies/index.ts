@@ -88,11 +88,18 @@ export interface EnsembleEntry {
 /**
  * Fabrique un ensemble pondéré à partir d'une liste de clés/poids et d'une
  * source d'aléa injectée. Chaque membre est construit via `createStrategy`.
+ *
+ * `invert` (défaut false) inverse la **décision finale** de l'ensemble : quand
+ * les stratégies sélectionnées pencheraient pour acheter, on vend (et inversement).
  */
-export function createEnsemble(entries: readonly EnsembleEntry[], random: RandomSource): Strategy {
+export function createEnsemble(
+  entries: readonly EnsembleEntry[],
+  random: RandomSource,
+  invert = false,
+): Strategy {
   const weighted: WeightedStrategy[] = entries.map((entry) => ({
     strategy: createStrategy(entry.key, entry.params ?? {}),
     weight: entry.weight,
   }));
-  return new EnsembleStrategy({ entries: weighted, random });
+  return new EnsembleStrategy({ entries: weighted, random, invert });
 }

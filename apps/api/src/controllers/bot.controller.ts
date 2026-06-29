@@ -38,6 +38,7 @@ export function createBotController({ bots }: BotControllerDeps) {
           params: s.params,
         })),
         buyFraction: data.buyFraction,
+        invert: data.invert,
       });
       return reply.code(201).send(bot);
     } catch (error) {

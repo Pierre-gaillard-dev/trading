@@ -85,6 +85,17 @@ describe('routes bots', () => {
       expect(body.id).toBeTruthy();
     });
 
+    it('accepte et renvoie le flag invert (inversion de l’ensemble)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/bots',
+        headers: auth(),
+        payload: createBody({ invert: true }),
+      });
+      expect(response.statusCode).toBe(201);
+      expect(JSON.parse(response.body).invert).toBe(true);
+    });
+
     it('met le symbole en majuscules', async () => {
       const response = await app.inject({
         method: 'POST',

@@ -46,6 +46,7 @@ model BotConfig {
   interval    String
   strategies  Json      @default("[]") // [{ strategyKey, weight, params }] : ensemble pondéré
   buyFraction Float     @default(0.1) // part du cash investie à chaque achat (0–1)
+  invert      Boolean   @default(false) // inverse la décision finale de l'ensemble (achat ↔ vente)
   createdAt   DateTime  @default(now())
 }
 

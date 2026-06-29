@@ -23,6 +23,8 @@ export const createBotSchema = z.object({
   strategies: z.array(strategyWeightSchema).min(1, 'Au moins une stratégie'),
   /** Part du cash investie par achat (0–1). */
   buyFraction: z.number().gt(0).max(1).optional(),
+  /** Inverse la décision finale de l'ensemble (achat ↔ vente). Défaut false. */
+  invert: z.boolean().optional(),
 });
 export type CreateBot = z.infer<typeof createBotSchema>;
 
@@ -33,6 +35,7 @@ export const botSchema = z.object({
   symbol: z.string(),
   interval: z.string(),
   strategies: z.array(z.object({ strategyKey: z.string(), weight: z.number() })),
+  invert: z.boolean().optional(),
 });
 export type BotDto = z.infer<typeof botSchema>;
 

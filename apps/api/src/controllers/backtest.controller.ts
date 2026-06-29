@@ -93,7 +93,11 @@ export function createBacktestController({ fetchCandles }: BacktestControllerDep
       weight: s.weight,
       params: s.params,
     }));
-    const strategy = createEnsemble(entries, new SeededRandom(data.seed ?? DEFAULT_SEED));
+    const strategy = createEnsemble(
+      entries,
+      new SeededRandom(data.seed ?? DEFAULT_SEED),
+      data.invert,
+    );
 
     const result = runBacktest({
       symbol,
