@@ -1,0 +1,18 @@
+# Base de données PostgreSQL pour le développement local.
+# Démarrer : docker compose up -d   |   Arrêter : docker compose down
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: trading-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: trading
+      POSTGRES_PASSWORD: trading
+      POSTGRES_DB: trading
+    ports:
+      - '5432:5432'
+    volumes:
+      - trading-pgdata:/var/lib/postgresql/data
+
+volumes:
+  trading-pgdata:

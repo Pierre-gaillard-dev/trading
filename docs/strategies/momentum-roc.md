@@ -18,11 +18,11 @@ Rate of Change sur `period` (en %) :
 
 ## Paramètres
 
-| Param | Type | Défaut | Description |
-|---|---|---|---|
-| `period` | `int > 0` | `12` | Horizon du rendement. |
-| `buyThreshold` | `number` | `0` | ROC au-dessus duquel on achète (en %). |
-| `sellThreshold` | `number` | `0` | ROC en dessous duquel on vend (en %). |
+| Param           | Type      | Défaut | Description                            |
+| --------------- | --------- | ------ | -------------------------------------- |
+| `period`        | `int > 0` | `12`   | Horizon du rendement.                  |
+| `buyThreshold`  | `number`  | `0`    | ROC au-dessus duquel on achète (en %). |
+| `sellThreshold` | `number`  | `0`    | ROC en dessous duquel on vend (en %).  |
 
 Variante : `buyThreshold = +2`, `sellThreshold = -2` crée une **zone morte** autour de 0 qui réduit les faux signaux.
 **Validation** : `period > 0`, `sellThreshold <= buyThreshold`.
@@ -67,7 +67,7 @@ export class MomentumRocStrategy implements Strategy {
     this.minCandles = p.period + 2;
   }
   decide(ctx: StrategyContext): Signal {
-    const closes = ctx.candles.map(c => c.close);
+    const closes = ctx.candles.map((c) => c.close);
     const r = roc(closes, this.p.period);
     const [prev, now] = lastTwo(r);
     if (prev == null || now == null) return 'HOLD';
@@ -79,6 +79,7 @@ export class MomentumRocStrategy implements Strategy {
 ```
 
 ## Sources
+
 - [TrendSpider — Rate of Change (ROC)](https://trendspider.com/learning-center/rate-of-change-roc-indicator-a-comprehensive-guide/)
 - [Fidelity — Rate of Change](https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/roc)
 - [QuantifiedStrategies — ROC backtest](https://www.quantifiedstrategies.com/rate-of-change-trading-strategy/)

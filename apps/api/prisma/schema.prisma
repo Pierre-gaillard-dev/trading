@@ -1,0 +1,105 @@
+// Schéma de la base de données (Prisma).
+// Doc : https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String          @id @default(cuid())
+  email        String          @unique
+  passwordHash String
+  createdAt    DateTime        @default(now())
+  watched      WatchedSymbol[]
+  portfolios   Portfolio[]
+}
+
+// Portefeuille fictif d'un utilisateur (argent 100 % fictif).
+model Portfolio {
+  id           String     @id @default(cuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  baseCurrency String     @default("USDT")
+  initialCash  Decimal    @db.Decimal(24, 8)
+  cash         Decimal    @db.Decimal(24, 8)
+  feeRate      Decimal    @db.Decimal(10, 6)
+  slippageBps  Int
+  createdAt    DateTime   @default(now())
+  positions    Position[]
+  trades       Trade[]
+  bots         BotConfig[]
+}
+
+// Configuration d'un bot persistée → relancée au démarrage du serveur.
+model BotConfig {
+  id          String    @id @default(cuid())
+  userId      String
+  portfolioId String
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  symbol      String
+  interval    String
+  strategies  Json      @default("[]") // [{ strategyKey, weight, params }] : ensemble pondéré
+  buyFraction Float     @default(0.1) // part du cash investie à chaque achat (0–1)
+  invert      Boolean   @default(false) // inverse la décision finale de l'ensemble (achat ↔ vente)
+  createdAt   DateTime  @default(now())
+}
+
+// Position détenue par un portefeuille sur un symbole (v1 : long uniquement).
+model Position {
+  portfolioId   String
+  portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  symbol        String
+  quantity      Decimal   @db.Decimal(28, 12)
+  avgEntryPrice Decimal   @db.Decimal(24, 8)
+
+  @@id([portfolioId, symbol])
+}
+
+// Trade exécuté (fictif) par un bot.
+model Trade {
+  id          String    @id @default(cuid())
+  portfolioId String
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  symbol      String
+  side        String // BUY | SELL
+  strategyKey String    @default("") // quelle stratégie a déclenché ce trade
+  quantity    Decimal   @db.Decimal(28, 12)
+  price       Decimal   @db.Decimal(24, 8)
+  fee         Decimal   @db.Decimal(24, 8)
+  candleTime  Int // openTime de la bougie (secondes) — pour aligner les marqueurs du graphe
+  executedAt  DateTime  @default(now())
+
+  @@index([portfolioId, symbol])
+}
+
+// Une crypto suivie par un utilisateur (watchlist).
+model WatchedSymbol {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symbol    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, symbol])
+}
+
+// Bougies de marché persistées (cache partagé : dashboard + workers/bots).
+// Données de marché brutes → Float convient (le décimal est réservé à l'argent).
+model Candle {
+  symbol   String
+  interval String
+  openTime Int // début de bougie, en secondes UNIX
+  open     Float
+  high     Float
+  low      Float
+  close    Float
+  volume   Float
+
+  @@id([symbol, interval, openTime])
+}

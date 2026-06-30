@@ -9,18 +9,19 @@ Le canal de Donchian trace le **plus haut** et le **plus bas** des N dernières 
 ## Indicateur & formules
 
 Sur `period` (défaut 20), en excluant la bougie courante du calcul des extrêmes (sinon le prix « casse » toujours son propre niveau) :
+
 - `upper_t = max(high_{t-1} … high_{t-period})`
 - `lower_t = min(low_{t-1} … low_{t-period})`
-- `middle_t = (upper_t + lower_t) / 2`  (sert de stop suiveur / sortie)
+- `middle_t = (upper_t + lower_t) / 2` (sert de stop suiveur / sortie)
 
 > ⚠️ Détail d'implémentation crucial **à tester** : le canal se calcule sur les `period` bougies **précédentes**, pas en incluant la bougie en cours. Sinon la condition de cassure devient impossible à satisfaire correctement.
 
 ## Paramètres
 
-| Param | Type | Défaut | Description |
-|---|---|---|---|
-| `entryPeriod` | `int > 0` | `20` | Fenêtre du canal d'entrée (cassure du plus haut). |
-| `exitPeriod` | `int > 0` | `10` | Fenêtre du canal de sortie (cassure du plus bas), souvent plus courte. |
+| Param         | Type      | Défaut | Description                                                            |
+| ------------- | --------- | ------ | ---------------------------------------------------------------------- |
+| `entryPeriod` | `int > 0` | `20`   | Fenêtre du canal d'entrée (cassure du plus haut).                      |
+| `exitPeriod`  | `int > 0` | `10`   | Fenêtre du canal de sortie (cassure du plus bas), souvent plus courte. |
 
 **Validation** : périodes entières > 0.
 **`minCandles` = `max(entryPeriod, exitPeriod) + 1`**.
@@ -68,9 +69,9 @@ export class DonchianBreakoutStrategy implements Strategy {
   decide(ctx: StrategyContext): Signal {
     const cs = ctx.candles;
     if (cs.length < this.minCandles) return 'HOLD';
-    const prior = cs.slice(0, -1);                       // exclut la bougie courante
-    const upper = Math.max(...prior.slice(-this.p.entryPeriod).map(c => c.high));
-    const lower = Math.min(...prior.slice(-this.p.exitPeriod).map(c => c.low));
+    const prior = cs.slice(0, -1); // exclut la bougie courante
+    const upper = Math.max(...prior.slice(-this.p.entryPeriod).map((c) => c.high));
+    const lower = Math.min(...prior.slice(-this.p.exitPeriod).map((c) => c.low));
     const close = cs[cs.length - 1].close;
     if (close > upper) return 'BUY';
     if (close < lower) return 'SELL';
@@ -80,5 +81,6 @@ export class DonchianBreakoutStrategy implements Strategy {
 ```
 
 ## Sources
+
 - [LuxAlgo — Donchian Channels breakout & trend-following](https://www.luxalgo.com/blog/donchian-channels-breakout-and-trend-following-strategy/)
 - [TrendSpider — Donchian Channel strategies](https://trendspider.com/learning-center/donchian-channel-trading-strategies/)

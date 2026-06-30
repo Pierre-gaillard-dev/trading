@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "BotConfig" ADD COLUMN     "buyFraction" DOUBLE PRECISION NOT NULL DEFAULT 0.1;
